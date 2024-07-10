@@ -4,7 +4,6 @@
 (b) Visualize Distributions: Plot histograms or density plots to visualize how SCORES are distributed.
 (c) Explore Application Variables: Analyze the distribution and relationships of application-level variables with SCORES.
 
-
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -23,29 +22,28 @@ print(statistics)
 
 # Visual comparison: Box plot
 plt.figure(figsize=(8, 6))
-sns.boxplot(data=df[['CScore', 'Fscore']], orient='v')
-plt.title('Box Plot of CScore and Fscore')
+sns.boxplot(data=df[['DNB', 'PayNet']], orient='v')
+plt.title('Box Plot of DNB and PayNet')
 plt.ylabel('Score')
 plt.show()
 
 # Visual comparison: Histograms
 plt.figure(figsize=(10, 4))
 plt.subplot(1, 2, 1)
-sns.histplot(df['CScore'], bins=5, kde=True)
-plt.title('Histogram of CScore')
+sns.histplot(df['DNB'], bins=5, kde=True)
+plt.title('Histogram of DNB')
 
 plt.subplot(1, 2, 2)
-sns.histplot(df['Fscore'], bins=5, kde=True)
-plt.title('Histogram of Fscore')
+sns.histplot(df['PayNet'], bins=5, kde=True)
+plt.title('Histogram of PayNet')
 
 plt.tight_layout()
 plt.show()
 
-[B] Visualize Distributions
+[B] Visualize Distributions & [C] Explore Application Variables
 # Visualize distributions and relationships
-sns.pairplot(df[['CScore', 'Fscore', 'AmountRequested', 'HasPG']], kind='reg', diag_kind='kde')
+sns.pairplot(df[['DNB', 'PayNet', 'AmountRequested', 'HasPG']], kind='reg', diag_kind='kde')
 plt.show()
-
 
 ***CONCLUSION***
 @: Central Tendency: DNB has a mean of 200 and median of 200, while PayNet has a mean of 690 and median of 700. This suggests DNB is more consistent around its mean compared to PayNet.
@@ -61,11 +59,21 @@ plt.show()
 (c) Evaluate Metrics: Compare metrics such as RMSE, R-squared, or MAE (Mean Absolute Error) to assess how well each score predicts the application-level variables.
 
 {{Visualization: The pairplot and regression models help visualize the relationships between SCORES and application-level variables. Patterns and correlations observed can suggest which score aligns better with the application data.}}
+
 # Visualize distributions and relationships
 sns.pairplot(df[['DNB', 'PayNet', 'AmountRequested', 'HasPG']], kind='reg', diag_kind='kde')
 plt.show()
 
-{{Model Evaluation: Comparing RMSE or other metrics from cross-validation provides insights into which score the application-level variables relate more closely to.}}
+[A] MODEL BUILDING 
+{{Model Evaluation: Comparing RMSE or other metrics from this provides insights into which score the application-level variables relate more closely to.}}
+**********************************
+# Separate features (X) and target variable (y)
+X = df[['AmountRequested', 'HasPG']]
+y = df['DNB']  # Predicting DNB
+
+# Instantiate the model
+model = LinearRegression()
+***********************************
 # Build regression models and evaluate performance
 X = df[['AmountRequested', 'HasPG']]  # Example: select relevant application-level variables
 y_DNB = df['DNB']
@@ -80,6 +88,31 @@ print(f"Mean RMSE for DNB model: {-scores_DNB.mean()}")
 model_PayNet = LinearRegression()
 scores_PayNet = cross_val_score(model_PayNet, X, y_PayNet, cv=5, scoring='neg_mean_squared_error')
 print(f"Mean RMSE for PayNet model: {-scores_PayNet.mean()}")
+
+
+[B] CROSS VALIDATION
+# Cross-validation
+cv_scores = cross_val_score(model, X, y, cv=5, scoring='neg_mean_squared_error')  # Use cross_val_score for cross-validation
+cv_rmse_scores = np.sqrt(-cv_scores)  # Convert scores to RMSE
+
+print("Cross-validation RMSE scores:", cv_rmse_scores)
+print("Mean RMSE:", cv_rmse_scores.mean())
+
+# Optionally, you can also compute R-squared scores for each fold
+cv_r2_scores = cross_val_score(model, X, y, cv=5, scoring='r2')
+print("Cross-validation R-squared scores:", cv_r2_scores)
+print("Mean R-squared:", cv_r2_scores.mean())
+
+***CONCLUSION***
+@: Evaluation Metrics: Negative Mean Squared Error (scoring='neg_mean_squared_error') is used as the scoring metric in cross_val_score. RMSE scores are computed by taking the square root of the negative MSE scores (np.sqrt(-cv_scores)). R-squared scores (scoring='r2') are also calculated to measure the proportion of variance explained by the model.
+@: Cross-validation RMSE scores: These scores give you an estimate of the model's predictive accuracy across different folds of the data. Lower RMSE values indicate better model performance.
+@: Cross-validation R-squared scores: These scores indicate how well the model fits the data. Higher R-squared values (closer to 1) suggest a better fit.
+
+***ADVANTAGES OF CROSS VALIDATION***
+@: Maximizing Data Utilization: Using cross-validation allows you to train the model on all available data points, which can be beneficial when you have limited data.
+@: Robust Performance Estimation: Cross-validation provides a more robust estimate of model performance compared to a single train-test split, as it uses multiple splits of the data for training and evaluation.
+
+###################################################################################################################################################################
 
 # Feature importance analysis (example using XGBoost)
 dtrain_DNB = xgb.DMatrix(X, label=y_DNB)
@@ -99,5 +132,50 @@ print(cv_results_DNB.iloc[-1])
 
 # Statistical tests (if applicable)
 # Example: t-tests, ANOVA to compare DNB and PayNet distributions
+************************************************
+[C] FEATURE IMPORTANCE ANALYSIS (XGBOOST)
 
+# Separate features (X) and target variables (y)
+X = df[['AmountRequested', 'HasPG']]
+y_DNB = df['DNB']
+y_PayNet = df['PayNet']
+
+# Instantiate XGBoost models
+model_DNB = xgb.XGBRegressor()
+model_PayNet = xgb.XGBRegressor()
+
+# Fit models
+model_DNB.fit(X, y_DNB)
+model_PayNet.fit(X, y_PayNet)
+
+# Feature importance analysis
+feature_importance_DNB = model_DNB.feature_importances_
+feature_importance_PayNet = model_PayNet.feature_importances_
+
+# Create DataFrame to visualize feature importance
+fi_df = pd.DataFrame({
+    'Feature': X.columns,
+    'DNB_Importance': feature_importance_DNB,
+    'PayNet_Importance': feature_importance_PayNet
+}).set_index('Feature')
+
+# Plot feature importance
+plt.figure(figsize=(10, 6))
+sns.barplot(data=fi_df.reset_index(), x='DNB_Importance', y='Feature', color='blue', label='DNB')
+sns.barplot(data=fi_df.reset_index(), x='PayNet_Importance', y='Feature', color='orange', label='PayNet')
+plt.xlabel('Feature Importance')
+plt.title('Feature Importance Comparison between DNB and PayNet Models')
+plt.legend()
+plt.show()
+
+# Optionally, print numeric values for feature importance
+print("DNB Feature Importance:")
+print(fi_df['DNB_Importance'].sort_values(ascending=False))
+
+print("\nPayNet Feature Importance:")
+print(fi_df['PayNet_Importance'].sort_values(ascending=False))
+
+***CONCLUSION***
+@: Feature Importance Comparison: The bar plot and printed importance values allow you to compare how each feature contributes to predicting DNB and PayNet.
+@: Consistency and Differences: Analyze if certain variables consistently appear as important predictors across both scores or if there are variations that indicate different relationships with DNB and PayNet.
 

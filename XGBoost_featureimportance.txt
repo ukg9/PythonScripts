@@ -4,8 +4,8 @@ from sklearn.preprocessing import OneHotEncoder
 import matplotlib.pyplot as plt
 
 # Separate features and target
-X = df.drop(columns='CScore')
-y = df['CScore']
+X = df.drop(columns='DNB')
+y = df['DNB']
 
 # Encode categorical variables
 X = pd.get_dummies(X, drop_first=True)

@@ -1,0 +1,103 @@
+1. Exploratory Data Analysis (EDA):
+
+(a) Descriptive Statistics: Compute summary statistics (mean, median, standard deviation) for both SCORES to understand their distributions.
+(b) Visualize Distributions: Plot histograms or density plots to visualize how SCORES are distributed.
+(c) Explore Application Variables: Analyze the distribution and relationships of application-level variables with SCORES.
+
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import xgboost as xgb
+import matplotlib.pyplot as plt
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+
+[A] DESCRIPTIVE STATISTICS & VISUALIZE "SCORES" 
+# Compute descriptive statistics
+statistics = df.describe()
+print("Descriptive Statistics:")
+print(statistics)
+
+# Visual comparison: Box plot
+plt.figure(figsize=(8, 6))
+sns.boxplot(data=df[['CScore', 'Fscore']], orient='v')
+plt.title('Box Plot of CScore and Fscore')
+plt.ylabel('Score')
+plt.show()
+
+# Visual comparison: Histograms
+plt.figure(figsize=(10, 4))
+plt.subplot(1, 2, 1)
+sns.histplot(df['CScore'], bins=5, kde=True)
+plt.title('Histogram of CScore')
+
+plt.subplot(1, 2, 2)
+sns.histplot(df['Fscore'], bins=5, kde=True)
+plt.title('Histogram of Fscore')
+
+plt.tight_layout()
+plt.show()
+
+[B] Visualize Distributions
+# Visualize distributions and relationships
+sns.pairplot(df[['CScore', 'Fscore', 'AmountRequested', 'HasPG']], kind='reg', diag_kind='kde')
+plt.show()
+
+
+***CONCLUSION***
+@: Central Tendency: DNB has a mean of 200 and median of 200, while PayNet has a mean of 690 and median of 700. This suggests DNB is more consistent around its mean compared to PayNet.
+@: Variability: DNB has a smaller standard deviation (32.53) compared to PayNet (42.92), indicating that DNB values are less spread out around the mean than PayNet values.
+@:Range: DNB ranges from 150 to 250, while PayNet ranges from 600 to 750. This shows that PayNet covers a wider range of values compared to DNB.
+
+################################################################################################################################################
+
+2. Predictive Modeling:
+
+(a) Model Building: Build separate regression models using SCORES as the target variable.
+(b) Cross-validation: Perform cross-validation to evaluate the performance of each model.
+(c) Evaluate Metrics: Compare metrics such as RMSE, R-squared, or MAE (Mean Absolute Error) to assess how well each score predicts the application-level variables.
+
+{{Visualization: The pairplot and regression models help visualize the relationships between SCORES and application-level variables. Patterns and correlations observed can suggest which score aligns better with the application data.}}
+# Visualize distributions and relationships
+sns.pairplot(df[['DNB', 'PayNet', 'AmountRequested', 'HasPG']], kind='reg', diag_kind='kde')
+plt.show()
+
+{{Model Evaluation: Comparing RMSE or other metrics from cross-validation provides insights into which score the application-level variables relate more closely to.}}
+# Build regression models and evaluate performance
+X = df[['AmountRequested', 'HasPG']]  # Example: select relevant application-level variables
+y_DNB = df['DNB']
+y_PayNet = df['PayNet']
+
+# Model for DNB
+model_DNB = LinearRegression()
+scores_DNB = cross_val_score(model_DNB, X, y_DNB, cv=5, scoring='neg_mean_squared_error')
+print(f"Mean RMSE for DNB model: {-scores_DNB.mean()}")
+
+# Model for PayNet
+model_PayNet = LinearRegression()
+scores_PayNet = cross_val_score(model_PayNet, X, y_PayNet, cv=5, scoring='neg_mean_squared_error')
+print(f"Mean RMSE for PayNet model: {-scores_PayNet.mean()}")
+
+# Feature importance analysis (example using XGBoost)
+dtrain_DNB = xgb.DMatrix(X, label=y_DNB)
+params = {
+    "objective": "reg:squarederror",
+    "max_depth": 4,
+    "eta": 0.1,
+    "eval_metric": "rmse"
+}
+cv_results_DNB = xgb.cv(dtrain=dtrain_DNB, params=params, nfold=5, num_boost_round=50, metrics="rmse", as_pandas=True)
+
+# Print feature importance for DNB model
+print("Feature Importance for DNB model:")
+print(cv_results_DNB.iloc[-1])
+
+# Repeat for PayNet model if needed
+
+# Statistical tests (if applicable)
+# Example: t-tests, ANOVA to compare DNB and PayNet distributions
+
+

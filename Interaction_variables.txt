@@ -1,0 +1,35 @@
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import PolynomialFeatures
+
+# Load your dataset
+df = pd.read_csv('path/to/leaf.csv')
+
+# Separate the dependent variable
+y = df['DNBScore']
+
+# Identify continuous and categorical variables
+continuous_vars = ['cont_var1', 'cont_var2', ..., 'cont_var20']  # Replace with your actual continuous variable names
+categorical_vars = ['cat_var1', 'cat_var2', ..., 'cat_var20']  # Replace with your actual categorical variable names
+
+# Encode categorical variables
+encoder = OneHotEncoder(drop='first', sparse=False)
+encoded_cats = encoder.fit_transform(df[categorical_vars])
+encoded_cat_df = pd.DataFrame(encoded_cats, columns=encoder.get_feature_names_out(categorical_vars))
+
+# Combine continuous variables and encoded categorical variables
+df_combined = pd.concat([df[continuous_vars], encoded_cat_df], axis=1)
+
+# Generate interaction terms
+poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
+interaction_terms = poly.fit_transform(df_combined)
+
+# Convert to DataFrame for easier viewing and handling
+interaction_df = pd.DataFrame(interaction_terms, columns=poly.get_feature_names_out(df_combined.columns))
+
+# Add the dependent variable back to the DataFrame
+interaction_df['DNBScore'] = y
+
+# Save or view the DataFrame with interaction terms
+print(interaction_df.head())
+# interaction_df.to_csv('path/to/interaction_leaf.csv', index=False)

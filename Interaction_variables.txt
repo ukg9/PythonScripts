@@ -1,151 +1,58 @@
+import xgboost as xgb
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import PolynomialFeatures
-import statsmodels.api as sm
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
-# Load your dataset
-df = pd.read_csv('path/to/leaf.csv')
+# List of continuous and categorical variables
+continuous_vars = ['Cont1', 'Cont2', 'Cont3', 'Cont4', 'Cont5', 'Cont6', 'Cont7', 'Cont8', 'Cont9', 'Cont10', 'Cont11', 'Cont12', 'Cont13', 'Cont14']
+categorical_vars = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5']
 
-# Separate the dependent variable
-y = df['DNBScore']
-
-# Identify continuous and categorical variables
-continuous_vars = ['cont_var1', 'cont_var2', ..., 'cont_var20']  # Replace with your actual continuous variable names
-categorical_vars = ['cat_var1', 'cat_var2', ..., 'cat_var20']  # Replace with your actual categorical variable names
+# Create interaction variables for continuous variables
+for i in range(len(continuous_vars)):
+    for j in range(i+1, len(continuous_vars)):
+        col_name = f"{continuous_vars[i]}_{continuous_vars[j]}"
+        leaf[col_name] = leaf[continuous_vars[i]] * leaf[continuous_vars[j]]
 
 # Encode categorical variables
-encoder = OneHotEncoder(drop='first', sparse=False)
-encoded_cats = encoder.fit_transform(df[categorical_vars])
-encoded_cat_df = pd.DataFrame(encoded_cats, columns=encoder.get_feature_names_out(categorical_vars))
+for col in categorical_vars:
+    le = LabelEncoder()
+    leaf[col] = le.fit_transform(leaf[col])
 
-# Combine continuous variables and encoded categorical variables
-df_combined = pd.concat([df[continuous_vars], encoded_cat_df], axis=1)
+# Create interaction variables for categorical variables
+for i in range(len(categorical_vars)):
+    for j in range(i+1, len(categorical_vars)):
+        col_name = f"{categorical_vars[i]}_{categorical_vars[j]}"
+        leaf[col_name] = leaf[categorical_vars[i]].astype(str) + "_" + leaf[categorical_vars[j]].astype(str)
+        le = LabelEncoder()
+        leaf[col_name] = le.fit_transform(leaf[col_name])
 
-# Generate interaction terms
-poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
-interaction_terms = poly.fit_transform(df_combined)
-
-# Convert to DataFrame for easier viewing and handling
-interaction_df = pd.DataFrame(interaction_terms, columns=poly.get_feature_names_out(df_combined.columns))
-
-# Add the dependent variable back to the DataFrame
-interaction_df['DNBScore'] = y
-
-# Save or view the DataFrame with interaction terms
-print(interaction_df.head())
-# interaction_df.to_csv('path/to/interaction_leaf.csv', index=False)
-
-
-REGRESSION
-
-# Assuming interaction_df is already created and includes the interaction terms
-# Let's say we are interested in the interaction between 'cont_var1' and 'cat_var1_B'
-
-# Add a constant term for the intercept
-interaction_df = sm.add_constant(interaction_df)
-
-# Fit the regression model
-X = interaction_df[['const', 'cont_var1', 'cat_var1_B', 'cont_var1 cat_var1_B']]
-y = interaction_df['DNBScore']
-
-# Fit the model
-model = sm.OLS(y, X).fit()
-
-# Print the summary
-#print(model.summary())
-
-# Extract the summary
-summary = model.summary2().tables[1]
-
-# Convert summary to DataFrame
-summary_df = pd.DataFrame(summary)
-
-# Display the summary DataFrame
-print(summary_df)
-
-# If you want to save this to a CSV file
-summary_df.to_csv('regression_summary.csv', index=True)
-
-
-
-
-#Interpretation:
-Coef.: The estimated coefficients for each term.
-Std.Err.: The standard error of the coefficient estimate.
-t: The t-statistic for the hypothesis test of whether the coefficient is significantly different from zero.
-P>|t|: The p-value for the t-test. A small p-value (typically < 0.05) indicates that the coefficient is significantly different from zero.
-[0.025, 0.975]: The 95% confidence interval for the coefficient estimate.
-This table provides a clear summary of the significance of each individual variable (cont_var1 and cat_var1_B) and their interaction term (cont_var1 cat_var1_B), allowing you to easily assess their combined effect on the dependent variable (DNBScore).
-
-
-
-****************************************************
-
-# Encode Categorical Variables
-df_encoded = pd.get_dummies(df, columns=['Cat1', 'Cat2', 'Cat3'], drop_first=True)
-
-# Display the encoded DataFrame
-print(df_encoded)
+# Create interaction variables for continuous and categorical variables
+for cont in continuous_vars:
+    for cat in categorical_vars:
+        col_name = f"{cont}_{cat}"
+        leaf[col_name] = leaf[cont] * leaf[cat]
 
 # Separate the dependent variable
-y = df_encoded['DNBScore']
-X = df_encoded.drop(columns=['DNBScore'])
+y = leaf['DNBScore']
+X = leaf.drop(columns=['DNBScore'])
 
-# Create Interaction Terms
-poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
-X_interactions = poly.fit_transform(X)
+# Convert the DataFrame to DMatrix
+data_dmatrix = xgb.DMatrix(data=X, label=y)
 
-# Convert to DataFrame for better visualization
-interaction_feature_names = poly.get_feature_names_out(input_features=X.columns)
-X_interactions_df = pd.DataFrame(X_interactions, columns=interaction_feature_names)
+# Train the model
+params = {
+    'objective': 'reg:squarederror',  # Objective for regression task
+    'max_depth': 3,                   # Maximum depth of trees
+    'learning_rate': 0.1,             # Learning rate
+    'n_estimators': 100,              # Number of boosting rounds
+}
 
-# Build the Regression Model
-X_with_interactions = sm.add_constant(X_interactions_df)  # add constant term
-model = sm.OLS(y, X_with_interactions).fit()
+# Train the model on the entire dataset
+model = xgb.train(params, data_dmatrix, num_boost_round=100)
 
-# Summary of the model
-print(model.summary())
+# Get feature importance scores based on gain
+importance_scores = model.get_score(importance_type='gain')
+sorted_importance = {k: v for k, v in sorted(importance_scores.items(), key=lambda item: item[1], reverse=True)}
 
-
-****************************************************************************************************************************
-
-import pandas as pd
-import statsmodels.api as sm
-from itertools import combinations
-from sklearn.preprocessing import PolynomialFeatures
-
-# Assume df is your DataFrame with dependent variable (DNBScore) and independent variables
-# Example:
-# y = df['DNBScore']
-# X = df.drop(columns=['DNBScore'])
-
-# List of all independent variable names
-independent_vars = X.columns
-
-# Generate all pairs of variables
-pairs = list(combinations(independent_vars, 2))
-
-# Initialize an empty list to store results
-results = []
-
-# Iterate over each pair of variables
-for var1, var2 in pairs:
-    # Create interaction term
-    interaction_term_name = f"{var1}_{var2}"
-    X_interaction = pd.DataFrame(X[var1] * X[var2], columns=[interaction_term_name])
-    
-    # Add interaction term to X
-    X_with_interaction = pd.concat([X, X_interaction], axis=1)
-    
-    # Fit the regression model
-    X_with_interaction = sm.add_constant(X_with_interaction)  # add constant term
-    model = sm.OLS(y, X_with_interaction).fit()
-    
-    # Store results (var1, var2, interaction_term_name, interaction_pvalue)
-    results.append((var1, var2, interaction_term_name, model.pvalues[interaction_term_name]))
-
-# Convert results to DataFrame for better visualization
-results_df = pd.DataFrame(results, columns=['Variable 1', 'Variable 2', 'Interaction Term', 'P-value'])
-
-# Display results
-print(results_df)
+# Print the feature importance scores
+print("Feature Importance Scores (Gain):", sorted_importance)

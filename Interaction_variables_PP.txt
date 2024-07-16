@@ -1,0 +1,64 @@
+Using Parallel Processing for Evaluating Interaction Terms
+
+import pandas as pd
+import statsmodels.api as sm
+from itertools import combinations
+from sklearn.preprocessing import PolynomialFeatures
+from multiprocessing import Pool, cpu_count
+
+# Function to evaluate interaction terms for a pair of variables
+def evaluate_interaction(pair):
+    var1, var2 = pair
+    
+    # Create interaction term
+    interaction_term_name = f"{var1}_{var2}"
+    X_interaction = pd.DataFrame(X[var1] * X[var2], columns=[interaction_term_name])
+    
+    # Add interaction term to X
+    X_with_interaction = pd.concat([X, X_interaction], axis=1)
+    
+    # Fit the regression model
+    X_with_interaction = sm.add_constant(X_with_interaction)  # add constant term
+    model = sm.OLS(y, X_with_interaction).fit()
+    
+    # Return results (var1, var2, interaction_term_name, interaction_pvalue)
+    return var1, var2, interaction_term_name, model.pvalues[interaction_term_name]
+
+if __name__ == '__main__':
+    # Assume df is your DataFrame with dependent variable (DNBScore) and independent variables
+    # Example:
+    # y = df['DNBScore']
+    # X = df.drop(columns=['DNBScore'])
+    
+    # List of all independent variable names
+    independent_vars = X.columns
+    
+    # Generate all pairs of variables
+    pairs = list(combinations(independent_vars, 2))
+    
+    # Use multiprocessing Pool to parallelize evaluation
+    with Pool(cpu_count() - 1) as pool:  # Use all available cores except one
+        results = pool.map(evaluate_interaction, pairs)
+    
+    # Convert results to DataFrame for better visualization
+    results_df = pd.DataFrame(results, columns=['Variable 1', 'Variable 2', 'Interaction Term', 'P-value'])
+    
+    # Display results
+    print(results_df)
+
+
+
+
+
+Explanation:
+Parallel Processing: The multiprocessing.Pool is used to create a pool of worker processes. Each process evaluates the interaction terms for a pair of variables concurrently.
+Function evaluate_interaction: This function takes a pair of variables (pair), creates the interaction term, fits a regression model, and returns the results (variable names, interaction term name, p-value).
+Main Process (if __name__ == '__main__':): Ensures that the script runs the main program only when executed directly, not when imported as a module.
+Pool map Function: Distributes the evaluate_interaction function across the pool of processes, processing each pair of variables in parallel.
+Results Compilation: After all processes complete, results contains a list of tuples with the results from each pair of variables.
+
+
+Notes:
+cpu_count() - 1: Adjusts the number of processes to use all available CPU cores except one, leaving one core for system tasks.
+Multiprocessing Considerations: Ensure your environment supports multiprocessing (e.g., not all environments are compatible, such as some interactive notebooks).
+Data Preparation: Ensure your data (df) is appropriately prepared before executing the script, including handling missing values and encoding categorical variables if necessary.

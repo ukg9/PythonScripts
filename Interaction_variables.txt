@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import PolynomialFeatures
+import statsmodels.api as sm
 
 # Load your dataset
 df = pd.read_csv('path/to/leaf.csv')
@@ -33,3 +34,118 @@ interaction_df['DNBScore'] = y
 # Save or view the DataFrame with interaction terms
 print(interaction_df.head())
 # interaction_df.to_csv('path/to/interaction_leaf.csv', index=False)
+
+
+REGRESSION
+
+# Assuming interaction_df is already created and includes the interaction terms
+# Let's say we are interested in the interaction between 'cont_var1' and 'cat_var1_B'
+
+# Add a constant term for the intercept
+interaction_df = sm.add_constant(interaction_df)
+
+# Fit the regression model
+X = interaction_df[['const', 'cont_var1', 'cat_var1_B', 'cont_var1 cat_var1_B']]
+y = interaction_df['DNBScore']
+
+# Fit the model
+model = sm.OLS(y, X).fit()
+
+# Print the summary
+#print(model.summary())
+
+# Extract the summary
+summary = model.summary2().tables[1]
+
+# Convert summary to DataFrame
+summary_df = pd.DataFrame(summary)
+
+# Display the summary DataFrame
+print(summary_df)
+
+# If you want to save this to a CSV file
+summary_df.to_csv('regression_summary.csv', index=True)
+
+
+
+
+#Interpretation:
+Coef.: The estimated coefficients for each term.
+Std.Err.: The standard error of the coefficient estimate.
+t: The t-statistic for the hypothesis test of whether the coefficient is significantly different from zero.
+P>|t|: The p-value for the t-test. A small p-value (typically < 0.05) indicates that the coefficient is significantly different from zero.
+[0.025, 0.975]: The 95% confidence interval for the coefficient estimate.
+This table provides a clear summary of the significance of each individual variable (cont_var1 and cat_var1_B) and their interaction term (cont_var1 cat_var1_B), allowing you to easily assess their combined effect on the dependent variable (DNBScore).
+
+
+
+****************************************************
+
+# Encode Categorical Variables
+df_encoded = pd.get_dummies(df, columns=['Cat1', 'Cat2', 'Cat3'], drop_first=True)
+
+# Display the encoded DataFrame
+print(df_encoded)
+
+# Separate the dependent variable
+y = df_encoded['DNBScore']
+X = df_encoded.drop(columns=['DNBScore'])
+
+# Create Interaction Terms
+poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
+X_interactions = poly.fit_transform(X)
+
+# Convert to DataFrame for better visualization
+interaction_feature_names = poly.get_feature_names_out(input_features=X.columns)
+X_interactions_df = pd.DataFrame(X_interactions, columns=interaction_feature_names)
+
+# Build the Regression Model
+X_with_interactions = sm.add_constant(X_interactions_df)  # add constant term
+model = sm.OLS(y, X_with_interactions).fit()
+
+# Summary of the model
+print(model.summary())
+
+
+****************************************************************************************************************************
+
+import pandas as pd
+import statsmodels.api as sm
+from itertools import combinations
+from sklearn.preprocessing import PolynomialFeatures
+
+# Assume df is your DataFrame with dependent variable (DNBScore) and independent variables
+# Example:
+# y = df['DNBScore']
+# X = df.drop(columns=['DNBScore'])
+
+# List of all independent variable names
+independent_vars = X.columns
+
+# Generate all pairs of variables
+pairs = list(combinations(independent_vars, 2))
+
+# Initialize an empty list to store results
+results = []
+
+# Iterate over each pair of variables
+for var1, var2 in pairs:
+    # Create interaction term
+    interaction_term_name = f"{var1}_{var2}"
+    X_interaction = pd.DataFrame(X[var1] * X[var2], columns=[interaction_term_name])
+    
+    # Add interaction term to X
+    X_with_interaction = pd.concat([X, X_interaction], axis=1)
+    
+    # Fit the regression model
+    X_with_interaction = sm.add_constant(X_with_interaction)  # add constant term
+    model = sm.OLS(y, X_with_interaction).fit()
+    
+    # Store results (var1, var2, interaction_term_name, interaction_pvalue)
+    results.append((var1, var2, interaction_term_name, model.pvalues[interaction_term_name]))
+
+# Convert results to DataFrame for better visualization
+results_df = pd.DataFrame(results, columns=['Variable 1', 'Variable 2', 'Interaction Term', 'P-value'])
+
+# Display results
+print(results_df)

@@ -85,6 +85,13 @@ for cont in continuous_vars:
         col_name = f"{cont}_{cat}"
         leaf[col_name] = leaf[cont] * leaf[cat]
 
+# Create interaction variables for categorical variables
+for i in range(len(encoded_categorical_vars)):
+    for j in range(i+1, len(encoded_categorical_vars)):
+        col_name = f"{encoded_categorical_vars[i]}_{encoded_categorical_vars[j]}"
+        leaf[col_name] = leaf[encoded_categorical_vars[i]] * leaf[encoded_categorical_vars[j]]
+
+
 # Separate the dependent variable
 y = leaf['DNBScore']
 X = leaf.drop(columns=['DNBScore'])

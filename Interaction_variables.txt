@@ -56,3 +56,64 @@ sorted_importance = {k: v for k, v in sorted(importance_scores.items(), key=lamb
 
 # Print the feature importance scores
 print("Feature Importance Scores (Gain):", sorted_importance)
+
+
+
+**********************************************************************************************************************************
+
+# List of continuous and categorical variables
+continuous_vars = ['Cont1', 'Cont2', 'Cont3', 'Cont4', 'Cont5', 'Cont6', 'Cont7', 'Cont8', 'Cont9', 'Cont10', 'Cont11', 'Cont12', 'Cont13', 'Cont14']
+categorical_vars = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5']
+
+# One-hot encode categorical variables
+leaf_encoded = pd.get_dummies(leaf[categorical_vars], dtype=int)
+
+# Combine encoded categorical variables with the original dataframe
+leaf = leaf.drop(columns=categorical_vars)
+leaf = pd.concat([leaf, leaf_encoded], axis=1)
+
+# Create interaction variables for continuous variables
+for i in range(len(continuous_vars)):
+    for j in range(i+1, len(continuous_vars)):
+        col_name = f"{continuous_vars[i]}_{continuous_vars[j]}"
+        leaf[col_name] = leaf[continuous_vars[i]] * leaf[continuous_vars[j]]
+
+# Create interaction variables for continuous and encoded categorical variables
+encoded_categorical_vars = leaf_encoded.columns.tolist()
+for cont in continuous_vars:
+    for cat in encoded_categorical_vars:
+        col_name = f"{cont}_{cat}"
+        leaf[col_name] = leaf[cont] * leaf[cat]
+
+# Separate the dependent variable
+y = leaf['DNBScore']
+X = leaf.drop(columns=['DNBScore'])
+
+# Convert the DataFrame to DMatrix
+data_dmatrix = xgb.DMatrix(data=X, label=y)
+
+# Train the model
+params = {
+    'objective': 'reg:squarederror',  # Objective for regression task
+    'max_depth': 3,                   # Maximum depth of trees
+    'learning_rate': 0.1,             # Learning rate
+    'n_estimators': 100,              # Number of boosting rounds
+}
+
+# Train the model on the entire dataset
+model = xgb.train(params, data_dmatrix, num_boost_round=100)
+
+# Get feature importance scores based on gain
+importance_scores = model.get_score(importance_type='gain')
+sorted_importance = {k: v for k, v in sorted(importance_scores.items(), key=lambda item: item[1], reverse=True)}
+
+# Print the feature importance scores
+print("Feature Importance Scores (Gain):", sorted_importance)
+
+# Convert the feature importance dictionary to a DataFrame
+importance_df = pd.DataFrame(list(sorted_importance.items()), columns=['Feature', 'Importance'])
+
+# Export the DataFrame to an Excel file
+importance_df.to_excel('feature_importance_scores.xlsx', index=False)
+
+print("Feature importance scores have been exported to 'feature_importance_scores.xlsx'.")

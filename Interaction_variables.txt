@@ -7,64 +7,6 @@ import numpy as np
 continuous_vars = ['Cont1', 'Cont2', 'Cont3', 'Cont4', 'Cont5', 'Cont6', 'Cont7', 'Cont8', 'Cont9', 'Cont10', 'Cont11', 'Cont12', 'Cont13', 'Cont14']
 categorical_vars = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5']
 
-# Create interaction variables for continuous variables
-for i in range(len(continuous_vars)):
-    for j in range(i+1, len(continuous_vars)):
-        col_name = f"{continuous_vars[i]}_{continuous_vars[j]}"
-        leaf[col_name] = leaf[continuous_vars[i]] * leaf[continuous_vars[j]]
-
-# Encode categorical variables
-for col in categorical_vars:
-    le = LabelEncoder()
-    leaf[col] = le.fit_transform(leaf[col])
-
-# Create interaction variables for categorical variables
-for i in range(len(categorical_vars)):
-    for j in range(i+1, len(categorical_vars)):
-        col_name = f"{categorical_vars[i]}_{categorical_vars[j]}"
-        leaf[col_name] = leaf[categorical_vars[i]].astype(str) + "_" + leaf[categorical_vars[j]].astype(str)
-        le = LabelEncoder()
-        leaf[col_name] = le.fit_transform(leaf[col_name])
-
-# Create interaction variables for continuous and categorical variables
-for cont in continuous_vars:
-    for cat in categorical_vars:
-        col_name = f"{cont}_{cat}"
-        leaf[col_name] = leaf[cont] * leaf[cat]
-
-# Separate the dependent variable
-y = leaf['DNBScore']
-X = leaf.drop(columns=['DNBScore'])
-
-# Convert the DataFrame to DMatrix
-data_dmatrix = xgb.DMatrix(data=X, label=y)
-
-# Train the model
-params = {
-    'objective': 'reg:squarederror',  # Objective for regression task
-    'max_depth': 3,                   # Maximum depth of trees
-    'learning_rate': 0.1,             # Learning rate
-    'n_estimators': 100,              # Number of boosting rounds
-}
-
-# Train the model on the entire dataset
-model = xgb.train(params, data_dmatrix, num_boost_round=100)
-
-# Get feature importance scores based on gain
-importance_scores = model.get_score(importance_type='gain')
-sorted_importance = {k: v for k, v in sorted(importance_scores.items(), key=lambda item: item[1], reverse=True)}
-
-# Print the feature importance scores
-print("Feature Importance Scores (Gain):", sorted_importance)
-
-
-
-**********************************************************************************************************************************
-
-# List of continuous and categorical variables
-continuous_vars = ['Cont1', 'Cont2', 'Cont3', 'Cont4', 'Cont5', 'Cont6', 'Cont7', 'Cont8', 'Cont9', 'Cont10', 'Cont11', 'Cont12', 'Cont13', 'Cont14']
-categorical_vars = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5']
-
 # One-hot encode categorical variables
 leaf_encoded = pd.get_dummies(leaf[categorical_vars], dtype=int)
 
@@ -95,6 +37,29 @@ for i in range(len(encoded_categorical_vars)):
 # Separate the dependent variable
 y = leaf['DNBScore']
 X = leaf.drop(columns=['DNBScore'])
+
+#LINEAR REGRESSION 
+
+# Train Linear Regression Model
+linear_model = LinearRegression()
+linear_model.fit(X, y)
+y_pred_linear = linear_model.predict(X)
+linear_mse = mean_squared_error(y, y_pred_linear)
+
+# Print Linear Regression MSE
+print(f"Linear Regression MSE: {linear_mse}")
+
+# Get Linear Regression coefficients
+linear_coefficients = pd.DataFrame({
+    'Feature': X.columns,
+    'Coefficient': linear_model.coef_
+}).sort_values(by='Coefficient', key=abs, ascending=False)
+
+# Print Linear Regression Coefficients
+print("Linear Regression Coefficients:")
+print(linear_coefficients)
+
+#XGBOOST
 
 # Convert the DataFrame to DMatrix
 data_dmatrix = xgb.DMatrix(data=X, label=y)

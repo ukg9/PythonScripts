@@ -9,7 +9,7 @@ import openpyxl
 #load the orignial dataset
 
 # List of continuous and categorical variables
-continuous_vars = ['Cont1', 'Cont2', 'Cont3', 'Cont4', 'Cont5', 'Cont6', 'Cont7', 'Cont8', 'Cont9', 'Cont10', 'Cont11', 'Cont12', 'Cont13', 'Cont14']
+continuous_vars = ['Cont1', 'Cont2', 'Cont3', 'Cont4', 'Cont5']
 categorical_vars = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5']
 
 # Outlier detection and treatment for continuous variables using percentile method

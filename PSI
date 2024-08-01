@@ -1,0 +1,35 @@
+import numpy as np
+import pandas as pd
+
+# Load the dataset
+leaf = pd.read_csv('leaf.csv')
+
+# Define the baseline year
+baseline_year = 2015
+baseline = leaf[leaf['vintage'] == baseline_year]['score']
+
+# Define the number of bins
+bins = 10
+breakpoints = np.linspace(baseline.min(), baseline.max(), bins + 1)
+
+# Function to get bin counts for a given year
+def get_bin_counts(year, breakpoints):
+    data = leaf[leaf['vintage'] == year]['score']
+    counts, _ = np.histogram(data, bins=breakpoints)
+    return counts
+
+# Get the bin counts for the baseline year
+baseline_counts = get_bin_counts(baseline_year, breakpoints)
+
+# Get the bin counts for a comparison year (e.g., 2016)
+comparison_year = 2016
+comparison_counts = get_bin_counts(comparison_year, breakpoints)
+
+# Output the results
+print("Baseline Counts (2015):")
+for i in range(len(baseline_counts)):
+    print(f"Bin {i + 1}: {breakpoints[i]} - {breakpoints[i+1]}: {baseline_counts[i]}")
+
+print("\nComparison Counts (2016):")
+for i in range(len(comparison_counts)):
+    print(f"Bin {i + 1}: {breakpoints[i]} - {breakpoints[i+1]}: {comparison_counts[i]}")

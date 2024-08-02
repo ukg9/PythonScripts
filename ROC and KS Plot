@@ -1,0 +1,57 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, roc_auc_score
+
+# Sample data: replace with your actual data
+data = {
+    'MasterscorePN': [300, 200, 400, 100, 500, 350, 250, 450, 150, 550],
+    'Default Flag': [1, 0, 0, 1, 0, 1, 0, 0, 1, 0],
+    'Application Date': pd.to_datetime(['2015-01-01', '2016-03-15', '2017-05-20', '2018-07-25', '2019-09-30',
+                                        '2020-11-10', '2021-01-05', '2022-03-15', '2023-05-20', '2021-12-31'])
+}
+
+df = pd.DataFrame(data)
+
+# Define the two vintages
+vintage_1_start = '2015-01-01'
+vintage_1_end = '2023-03-31'
+vintage_2_start = '2018-01-01'
+vintage_2_end = '2021-12-31'
+
+# Filter the data for each vintage
+df_vintage_1 = df[(df['Application Date'] >= vintage_1_start) & (df['Application Date'] <= vintage_1_end)]
+df_vintage_2 = df[(df['Application Date'] >= vintage_2_start) & (df['Application Date'] <= vintage_2_end)]
+
+# Function to plot ROC curve
+def plot_roc_curve(df, label):
+    fpr, tpr, _ = roc_curve(df['Default Flag'], df['MasterscorePN'])
+    auc = roc_auc_score(df['Default Flag'], df['MasterscorePN'])
+    plt.plot(fpr, tpr, marker='.', label=f'{label} (AUC = {auc:.2f})')
+
+# Plot ROC curves for both vintages
+plt.figure(figsize=(8, 6))
+plot_roc_curve(df_vintage_1, 'Vintage Jan 2015 - Mar 2023')
+plot_roc_curve(df_vintage_2, 'Vintage Jan 2018 - Dec 2021')
+plt.plot([0, 1], [0, 1], linestyle='--', color='r', label='Random Classifier')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Function to calculate KS statistic
+def calculate_ks(df):
+    df = df.sort_values(by='MasterscorePN')
+    df['cumulative_good'] = np.where(df['Default Flag'] == 0, 1, 0).cumsum() / (df['Default Flag'] == 0).sum()
+    df['cumulative_bad'] = np.where(df['Default Flag'] == 1, 1, 0).cumsum() / (df['Default Flag'] == 1).sum()
+    ks_stat = np.max(np.abs(df['cumulative_good'] - df['cumulative_bad']))
+    return ks_stat
+
+# Calculate KS statistics for both vintages
+ks_vintage_1 = calculate_ks(df_vintage_1)
+ks_vintage_2 = calculate_ks(df_vintage_2)
+
+print(f'KS Statistic for Vintage Jan 2015 - Mar 2023: {ks_vintage_1:.2f}')
+print(f'KS Statistic for Vintage Jan 2018 - Dec 2021: {ks_vintage_2:.2f}')

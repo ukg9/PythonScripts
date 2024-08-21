@@ -1,0 +1,6 @@
+ ```excel
+ =IF(A1="0", COUNTIFS(Sheet3!$G$2:$G$1000, 0), 
+    IF(A1="1 to 10", COUNTIFS(Sheet3!$G$2:$G$1000, ">=1", Sheet3!$G$2:$G$1000, "<=10"),
+    IF(A1="11 to 20", COUNTIFS(Sheet3!$G$2:$G$1000, ">=11", Sheet3!$G$2:$G$1000, "<=20"),
+    ... and so on for other ranges)))
+ ```

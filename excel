@@ -1,9 +1,12 @@
 
 TIB:
 =IF(A2<1980, "Senior", IF(AND(A2>=1981, A2<=2000), "Medium", "Junior"))
+=IF(D2="Senior", 3, IF(D2="Medium", 2, IF(D2="Junior", 1, "")))
 
 NTD:
 =IF(B2="NULL", "", IF(B2<10, 1, IF(AND(B2>=11, B2<=30), 2, 3)))
+=IF(B2="NULL", "", IF(B2<=10, 1, IF(AND(B2>=11, B2<=30), 2, 3)))
 
 NTE:
 =IF(C2="NULL", "", IF(C2<10, 1, IF(AND(C2>=11, C2<=20), 2, 3)))
+=IF(C2="NULL", "", IF(C2<=10, 1, IF(AND(C2>=11, C2<=20), 2, 3)))

@@ -1,3 +1,9 @@
-=IF(AND(F2=1, G2=1, H2=1), 1, IF(OR(F2=1, G2=1, H2=1), 2, 3))
 
-=IF(I2=1, "High", IF(I2=2, "Medium", "Low"))
+TIB:
+=IF(A2<1980, "Senior", IF(AND(A2>=1981, A2<=2000), "Medium", "Junior"))
+
+NTD:
+=IF(B2="NULL", "", IF(B2<10, 1, IF(AND(B2>=11, B2<=30), 2, 3)))
+
+NTE:
+=IF(C2="NULL", "", IF(C2<10, 1, IF(AND(C2>=11, C2<=20), 2, 3)))

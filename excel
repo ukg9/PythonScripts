@@ -12,3 +12,8 @@ NTD:
 NTE:
 =IF(C2="NULL", "", IF(C2<10, 1, IF(AND(C2>=11, C2<=20), 2, 3)))
 =IF(C2="NULL", "", IF(C2<=10, 1, IF(AND(C2>=11, C2<=20), 2, 3)))
+
+
+
+Dynamic 
+=IF(A2<YEAR(TODAY())-44, "Senior", IF(AND(A2>=YEAR(TODAY())-43, A2<=YEAR(TODAY())-24), "Medium", "Junior"))

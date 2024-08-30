@@ -17,3 +17,12 @@ NTE:
 
 Dynamic 
 =IF(A2<YEAR(TODAY())-44, "Senior", IF(AND(A2>=YEAR(TODAY())-43, A2<=YEAR(TODAY())-24), "Medium", "Junior"))
+
+=IF(A2<=YEAR(TODAY())-44, "Senior", IF(AND(A2>=YEAR(TODAY())-43, A2<=YEAR(TODAY())-24), "Medium", "Junior"))
+
+SUMMARY:
+Senior: A2 <= YEAR(TODAY())-44 (1980 and earlier for the current year 2024)
+Medium: A2 >= YEAR(TODAY())-43 and A2 <= YEAR(TODAY())-24 (1981 to 2000 for the current year 2024)
+Junior: All years after the "Medium" range (2001 and later for the current year 2024)
+
+

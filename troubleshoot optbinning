@@ -1,0 +1,24 @@
+pip install ortools==9.9.0
+pip install --upgrade cvxpy optbinning
+
+
+pip install ecos scs
+
+
+
+from sklearn.preprocessing import KBinsDiscretizer
+import numpy as np
+
+# Example data
+np.random.seed(42)
+data = np.random.randn(1000).reshape(-1, 1)
+
+# Initialize the discretizer
+kbin_discretizer = KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='quantile')
+
+# Fit and transform data
+data_binned = kbin_discretizer.fit_transform(data)
+print(data_binned)
+
+
+pysmbinning

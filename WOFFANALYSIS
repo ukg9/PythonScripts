@@ -28,13 +28,13 @@ for sic in sic_categories:
     amountlent_lt = sic_data[sic_data['DNBscore'] < cutoff]['amountlent'].sum()
     count_lt = sic_data[sic_data['DNBscore'] < cutoff].shape[0]
     
-    # Calculate amount charged off and count for DNBscore >= cutoff
-    amountchargdoff_ge = sic_data[sic_data['DNBscore'] >= cutoff]['amountchargdoff'].sum()
-    count_chargedoff_ge = sic_data[sic_data['DNBscore'] >= cutoff].shape[0]
+    # Calculate amount charged off and count of WOFFLAG=1 for DNBscore >= cutoff
+    amountchargdoff_ge = sic_data[(sic_data['DNBscore'] >= cutoff) & (sic_data['WOFFLAG'] == 1)]['amountchargdoff'].sum()
+    count_chargedoff_ge = sic_data[(sic_data['DNBscore'] >= cutoff) & (sic_data['WOFFLAG'] == 1)].shape[0]
     
-    # Calculate amount charged off and count for DNBscore < cutoff
-    amountchargdoff_lt = sic_data[sic_data['DNBscore'] < cutoff]['amountchargdoff'].sum()
-    count_chargedoff_lt = sic_data[sic_data['DNBscore'] < cutoff].shape[0]
+    # Calculate amount charged off and count of WOFFLAG=1 for DNBscore < cutoff
+    amountchargdoff_lt = sic_data[(sic_data['DNBscore'] < cutoff) & (sic_data['WOFFLAG'] == 1)]['amountchargdoff'].sum()
+    count_chargedoff_lt = sic_data[(sic_data['DNBscore'] < cutoff) & (sic_data['WOFFLAG'] == 1)].shape[0]
     
     # Calculate %WOFF1 (amountlent/amountchargdoff for DNBscore >= cutoff)
     woff1 = (amountchargdoff_ge / amountlent_ge) * 100 if amountlent_ge != 0 else 0

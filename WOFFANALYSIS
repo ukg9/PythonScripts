@@ -1,0 +1,69 @@
+# Define a dictionary with cutoff DNBscore for each SIC category
+cutoff_scores = {
+    'Category1': 670,
+    'Category2': 660,
+    'Category3': 680,
+    # Add more categories as needed
+}
+
+# Initialize a list to hold results
+results = []
+
+# Get unique SIC categories
+sic_categories = df['SIC_Category'].unique()
+
+# Iterate over each SIC category
+for sic in sic_categories:
+    # Get the cutoff score for the current SIC category
+    cutoff = cutoff_scores.get(sic, 0)  # Default to 0 if not found
+
+    # Filter data for the current SIC category
+    sic_data = df[df['SIC_Category'] == sic]
+    
+    # Calculate amount lent and count for DNBscore >= cutoff
+    amountlent_ge = sic_data[sic_data['DNBscore'] >= cutoff]['amountlent'].sum()
+    count_ge = sic_data[sic_data['DNBscore'] >= cutoff].shape[0]
+    
+    # Calculate amount lent and count for DNBscore < cutoff
+    amountlent_lt = sic_data[sic_data['DNBscore'] < cutoff]['amountlent'].sum()
+    count_lt = sic_data[sic_data['DNBscore'] < cutoff].shape[0]
+    
+    # Calculate amount charged off and count for DNBscore >= cutoff
+    amountchargdoff_ge = sic_data[sic_data['DNBscore'] >= cutoff]['amountchargdoff'].sum()
+    count_chargedoff_ge = sic_data[sic_data['DNBscore'] >= cutoff].shape[0]
+    
+    # Calculate amount charged off and count for DNBscore < cutoff
+    amountchargdoff_lt = sic_data[sic_data['DNBscore'] < cutoff]['amountchargdoff'].sum()
+    count_chargedoff_lt = sic_data[sic_data['DNBscore'] < cutoff].shape[0]
+    
+    # Calculate %WOFF1 (amountlent/amountchargdoff for DNBscore >= cutoff)
+    woff1 = (amountchargdoff_ge / amountlent_ge) * 100 if amountlent_ge != 0 else 0
+    
+    # Calculate %WOFF2 (amountlent/amountchargdoff for DNBscore < cutoff)
+    woff2 = (amountchargdoff_lt / amountlent_lt) * 100 if amountlent_lt != 0 else 0
+    
+    # Calculate the difference between %WOFF1 and %WOFF2
+    woff_difference = woff1 - woff2
+    
+    # Append the results
+    results.append({
+        'SIC_Category': sic,
+        'Cutoff_DNBscore': cutoff,
+        'AmountLent_GE': amountlent_ge,
+        'Count_GE': count_ge,
+        'AmountLent_LT': amountlent_lt,
+        'Count_LT': count_lt,
+        'AmountChargedOff_GE': amountchargdoff_ge,
+        'CountChargedOff_GE': count_chargedoff_ge,
+        'AmountChargedOff_LT': amountchargdoff_lt,
+        'CountChargedOff_LT': count_chargedoff_lt,
+        '%WOFF1 (GE)': woff1,
+        '%WOFF2 (LT)': woff2,
+        'WOFF_Difference': woff_difference
+    })
+
+# Create a DataFrame from the results
+result_df = pd.DataFrame(results)
+
+# Display the result
+print(result_df)

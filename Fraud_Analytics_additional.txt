@@ -1,0 +1,392 @@
+A. Steps for Bias Testing
+The general steps for bias testing are:
+
+1. Identify Sensitive Attributes: These are demographic variables such as gender, race, age, income level, etc.
+2. Group-Based Performance Analysis: Measure the model’s performance (e.g., precision, recall) separately for each demographic group.
+3. Fairness Metrics: Use specific fairness metrics like disparate impact, equalized odds, or demographic parity to detect bias.
+4. Mitigation (if necessary): If bias is detected, you can use techniques to mitigate it, such as re-weighting or re-sampling the dataset or introducing fairness constraints into the model training process.
+
+
+1. Checking Performance for Different Demographic Groups
+You first need to calculate performance metrics like precision, recall, and F1-score for each demographic group.
+
+import pandas as pd
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+# Load your dataset
+df = pd.read_csv('fraud_data.csv')
+
+# Assume 'FraudFlag' is the target and 'Gender' and 'AgeGroup' are sensitive attributes
+sensitive_attributes = ['Gender', 'AgeGroup']  # Add other sensitive attributes as needed
+
+# Split data into demographic groups
+for attr in sensitive_attributes:
+    for group in df[attr].unique():
+        group_data = df[df[attr] == group]
+        X_group = group_data.drop(columns=['FraudFlag', attr])  # Drop target and sensitive attribute
+        y_group = group_data['FraudFlag']
+        
+        # Predict for each group (assuming you already have a trained model)
+        y_pred_group = clf.predict(X_group)
+
+        # Calculate metrics
+        accuracy = accuracy_score(y_group, y_pred_group)
+        precision = precision_score(y_group, y_pred_group)
+        recall = recall_score(y_group, y_pred_group)
+        f1 = f1_score(y_group, y_pred_group)
+        
+        print(f"Performance for {attr} = {group}:")
+        print(f"Accuracy: {accuracy:.2f}, Precision: {precision:.2f}, Recall: {recall:.2f}, F1 Score: {f1:.2f}\n")
+
+
+
+**** This will output the model’s performance (accuracy, precision, recall, F1) for each subgroup (e.g., male/female, different age groups). Significant discrepancies between groups indicate potential bias.
+
+
+
+
+2. Disparate Impact
+One common fairness metric is disparate impact, which looks at whether the positive outcomes (in this case, non-fraud predictions) are distributed equally across different groups. Disparate impact can be calculated using the following formula:
+
+Disparate Impact = Positive Outcome Rate for Group A/Positive Outcome Rate for Group B​
+ 
+If this ratio is far from 1 (usually below 0.8, known as the 80% rule), the model may exhibit bias.
+
+
+# Example: Check for disparate impact by gender
+positive_outcomes_male = df[(df['Gender'] == 'Male') & (df['FraudFlag'] == 0)].shape[0] / df[df['Gender'] == 'Male'].shape[0]
+positive_outcomes_female = df[(df['Gender'] == 'Female') & (df['FraudFlag'] == 0)].shape[0] / df[df['Gender'] == 'Female'].shape[0]
+
+disparate_impact_gender = positive_outcomes_female / positive_outcomes_male
+
+print(f"Disparate Impact (Gender - Female/Male): {disparate_impact_gender:.2f}")
+
+
+**** If the disparate impact score is significantly less than 1 (e.g., below 0.8), there might be unfairness in how the model treats one gender group compared to the other.
+
+
+
+3. Equalized Odds
+Another fairness metric is equalized odds, which checks if the model has equal true positive rate and false positive rate across groups. Here's how you can check for equalized odds:
+
+
+from sklearn.metrics import confusion_matrix
+
+def equalized_odds(y_true, y_pred):
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    tpr = tp / (tp + fn)  # True Positive Rate (Recall)
+    fpr = fp / (fp + tn)  # False Positive Rate
+    return tpr, fpr
+
+# Calculate TPR and FPR for each gender group
+for gender in df['Gender'].unique():
+    group_data = df[df['Gender'] == gender]
+    X_group = group_data.drop(columns=['FraudFlag', 'Gender'])
+    y_group = group_data['FraudFlag']
+    y_pred_group = clf.predict(X_group)
+    
+    tpr, fpr = equalized_odds(y_group, y_pred_group)
+    print(f"Equalized Odds for {gender}: TPR = {tpr:.2f}, FPR = {fpr:.2f}")
+
+
+**** If you notice large differences in true positive rate (recall) or false positive rate across groups, the model may not be equally fair in its predictions.
+
+
+
+4. Demographic Parity
+Demographic parity requires that the probability of receiving a positive classification (e.g., non-fraud) is the same for all groups. Here's how you can test for demographic parity:
+
+# Demographic parity for gender
+positive_rate_male = df[(df['Gender'] == 'Male') & (y_pred == 1)].shape[0] / df[df['Gender'] == 'Male'].shape[0]
+positive_rate_female = df[(df['Gender'] == 'Female') & (y_pred == 1)].shape[0] / df[df['Gender'] == 'Female'].shape[0]
+
+print(f"Positive Classification Rate (Male): {positive_rate_male:.2f}")
+print(f"Positive Classification Rate (Female): {positive_rate_female:.2f}")
+
+
+**** A large difference in the positive classification rates between groups suggests that demographic parity is not being maintained, indicating potential bias.
+
+
+5. Mitigating Bias
+If you detect bias in your model, there are several ways to mitigate it:
+
+1. Re-weighting: Assign more weight to under-represented groups during training.
+2. Re-sampling: Oversample minority groups or undersample majority groups to balance the dataset.
+3. Fairness-Constrained Models: Use algorithms that introduce fairness constraints during model training, such as fairlearn.
+
+Here’s an example of using fairlearn to mitigate bias:
+
+pip install fairlearn
+from fairlearn.reductions import GridSearch, DemographicParity
+from sklearn.linear_model import LogisticRegression
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Initialize the Logistic Regression model
+lr_model = LogisticRegression()
+
+# Use Fairlearn to optimize for Demographic Parity
+constraint = DemographicParity()
+grid_search = GridSearch(lr_model, constraints=constraint, grid_size=10)
+grid_search.fit(X_train, y_train, sensitive_features=df['Gender'])
+
+# Get the best model based on fairness constraint
+best_fair_model = grid_search.best_estimator_
+
+# Predict and evaluate performance on test set
+y_pred_fair = best_fair_model.predict(X_test)
+accuracy_fair = accuracy_score(y_test, y_pred_fair)
+print(f"Accuracy (Fair Model): {accuracy_fair:.2f}")
+
+
+**** The fairlearn library helps you train models that adhere to fairness constraints, such as demographic parity, which ensures fair treatment across different demographic groups.
+
+
+B. Steps for Setting up Regular Monitoring
+
+1. Establish Monitoring Metrics
+> Performance Metrics: Monitor key performance indicators such as accuracy, precision, recall, F1-score, and AUC-ROC. These metrics ensure the model is still effectively catching fraud while minimizing false positives.
+> Threshold Monitoring: Regularly review the fraud detection thresholds to ensure they remain optimal for balancing fraud detection and customer satisfaction.
+> Trend Analysis: Track model predictions over time to identify trends, such as an increase in false positives or negatives, or emerging patterns in flagged transactions.
+
+2. Set Up Drift Detection
+> Data Drift: Monitor changes in the input data distribution (e.g., transaction types, amounts) over time to ensure the model is still being used on data similar to what it was trained on.
+> Concept Drift: Fraud strategies evolve, and concept drift occurs when the relationship between features and outcomes changes. You need tools to detect if this drift affects the model's accuracy.
+
+3. Create Alerts and Triggers
+> Set up automated alerts when performance metrics drop below pre-defined thresholds or when drift is detected. These alerts can trigger investigations into why the model's performance is degrading.
+
+4. Implement Human-in-the-Loop Review
+> Introduce periodic human reviews of the model's predictions, particularly for flagged transactions. This ensures that any emerging fraud tactics are detected early by human experts and incorporated back into the model.
+
+5. Create a Dashboard for Regular Reporting
+> Develop a monitoring dashboard that tracks the model’s performance over time, enabling easy visualization of important metrics, trends, and alerts. Tools like Tableau, Power BI, or even Python (with libraries like matplotlib or dash) can be used for this.
+
+6. Set Up Regular Retraining
+> Based on your drift and performance monitoring, schedule regular model retraining sessions. Depending on how quickly fraud patterns evolve, you might retrain the model every quarter or after detecting significant concept drift.
+
+
+****SCRIPTS****
+1. Performance Monitoring
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+
+def evaluate_model(y_true, y_pred):
+    # Calculate performance metrics
+    accuracy = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred)
+    recall = recall_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred)
+    roc_auc = roc_auc_score(y_true, y_pred)
+    
+    return {
+        'Accuracy': accuracy,
+        'Precision': precision,
+        'Recall': recall,
+        'F1 Score': f1,
+        'AUC-ROC': roc_auc
+    }
+
+# Assuming you have test labels and predictions
+y_true = [0, 1, 1, 0, 0, 1]  # True labels (fraud: 1, non-fraud: 0)
+y_pred = [0, 1, 0, 0, 1, 1]  # Predicted labels
+
+metrics = evaluate_model(y_true, y_pred)
+print(metrics)
+
+
+2. Data Drift Monitoring
+pip install evidently
+import pandas as pd
+from evidently.report import Report
+from evidently.metrics import DataDriftPresetMetric
+
+# Load historical and current data
+historical_data = pd.read_csv("historical_fraud_data.csv")
+current_data = pd.read_csv("current_fraud_data.csv")
+
+# Define a drift report
+data_drift_report = Report(metrics=[
+    DataDriftPresetMetric()
+])
+
+# Generate the drift report
+data_drift_report.run(reference_data=historical_data, current_data=current_data)
+
+# Visualize the report
+data_drift_report.show()
+
+
+3. Automated Alerts
+Set up alerts based on thresholds for model performance metrics. For example, if the F1 score drops below 0.7, trigger an alert.
+def check_performance_thresholds(metrics):
+    if metrics['F1 Score'] < 0.7:
+        print("Alert: Model F1 Score has dropped below 0.7! Investigate model performance.")
+    if metrics['Precision'] < 0.75:
+        print("Alert: Precision is below acceptable limits.")
+
+# Evaluate and check thresholds
+check_performance_thresholds(metrics)
+
+
+
+4. Trend Analysis and Reporting
+import matplotlib.pyplot as plt
+
+# Example performance data over time
+performance_data = {
+    'day': ['2024-09-01', '2024-09-08', '2024-09-15', '2024-09-22'],
+    'accuracy': [0.95, 0.94, 0.92, 0.89],
+    'precision': [0.9, 0.88, 0.85, 0.8],
+    'recall': [0.92, 0.91, 0.88, 0.85]
+}
+
+# Convert to DataFrame
+df = pd.DataFrame(performance_data)
+
+# Plot trends
+plt.figure(figsize=(10, 5))
+plt.plot(df['day'], df['accuracy'], label='Accuracy', marker='o')
+plt.plot(df['day'], df['precision'], label='Precision', marker='o')
+plt.plot(df['day'], df['recall'], label='Recall', marker='o')
+
+plt.title('Model Performance Over Time')
+plt.xlabel('Date')
+plt.ylabel('Score')
+plt.legend()
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.show()
+
+
+5. Set Up Retraining
+def retrain_model_if_drift(drift_detected):
+    if drift_detected:
+        print("Data drift detected! Retraining the model...")
+        # Load new data and retrain the model
+        # retrain_model(new_data)
+    else:
+        print("No drift detected. Model remains effective.")
+
+# Call the function based on drift analysis
+drift_detected = True  # This would be dynamically set by your drift detection mechanism
+retrain_model_if_drift(drift_detected)
+
+
+
+C. Compliance: Ensure that the model complies with applicable regulations (e.g., GDPR, SR 11-7).
+
+1. GDPR (General Data Protection Regulation) Compliance
+GDPR is primarily concerned with protecting the privacy and data rights of individuals in the European Union. For a fraud detection model, compliance with GDPR includes the following steps:
+
+a. Data Collection and Consent
+Obtain Explicit Consent: Ensure that data subjects (customers) have explicitly consented to the collection of their personal data for fraud detection purposes.
+Minimize Data Collection: Collect only the data that is strictly necessary for the model to function effectively.
+Document Consent: Keep a record of consent, which can be audited to demonstrate compliance.
+
+b. Data Privacy and Security
+Anonymization and Pseudonymization: Where possible, use anonymized or pseudonymized data in your model to reduce the risks associated with personal data exposure.
+Encryption: Ensure that all personal data is encrypted both in transit and at rest to protect against unauthorized access.
+Data Storage Limitation: Only retain personal data for as long as necessary for fraud detection, and ensure proper data deletion processes are in place once it is no longer needed.
+
+c. Data Subject Rights
+Right to Access: Data subjects must be able to access the personal data being processed in the fraud detection model.
+Right to Erasure (Right to be Forgotten): Individuals have the right to request the deletion of their data if it is no longer needed for the purposes for which it was collected.
+Right to Object: Customers can object to their personal data being used for automated decision-making (e.g., fraud detection).
+To comply, you should build mechanisms for customers to access, review, and delete their data upon request.
+
+d. Automated Decision-Making and Explainability
+Transparency: GDPR requires that when decisions are made solely based on automated processes (e.g., flagging transactions for fraud), the model must be transparent about how decisions are made.
+Explainability: You must provide explanations to individuals who are flagged for fraud, clarifying why the decision was made and on what basis.
+
+Solution: Use interpretable models or explainable AI (XAI) techniques like SHAP (SHapley Additive exPlanations) or LIME (Local Interpretable Model-agnostic Explanations) to provide insights into how the model makes decisions.
+
+e. Data Breach Notifications
+Ensure that if a data breach occurs, you have a process in place to notify both the supervisory authority and affected data subjects within 72 hours as mandated by GDPR.
+
+
+2. SR 11-7 (Supervisory Guidance on Model Risk Management) Compliance
+SR 11-7, issued by the Federal Reserve, provides guidance on managing risks associated with using models in financial institutions. It focuses on model governance, validation, and documentation to ensure models are used responsibly and accurately.
+
+a. Model Governance
+Establish Clear Roles and Responsibilities: Ensure that model developers, users, and validators have clearly defined roles. For instance, you should have a separation between those developing the fraud detection model and those validating its accuracy.
+Model Risk Management Policies: Implement formal model risk management policies, which should be reviewed regularly to ensure ongoing compliance.
+Approval Process: Ensure the fraud detection model goes through formal approval processes before implementation. This involves reviewing and signing off by senior management or a dedicated risk committee.
+
+b. Model Validation
+Independent Model Validation: SR 11-7 mandates that models should be independently validated by a party not involved in the model's development. Validation should occur both before deployment and on a periodic basis.
+Validate Model Assumptions and Limitations: Ensure that the model’s assumptions (e.g., features that indicate fraud) are well-founded. The limitations and weaknesses of the model should also be documented.
+Ongoing Monitoring: Set up continuous monitoring and backtesting to evaluate model performance over time. If performance deteriorates, initiate investigations and adjustments.
+Stress Testing: Perform stress testing to assess how the fraud detection model performs under extreme scenarios (e.g., large-scale fraud attempts).
+
+c. Model Documentation
+Comprehensive Documentation: Maintain thorough documentation for the entire model lifecycle, including the data used, feature selection process, model structure, and rationale behind key decisions.
+Version Control: Keep a version history of the model, tracking changes made over time. This helps in audits and reviews.
+Audit Trails: Ensure there is an audit trail for all data used in model development, including sources, processing methods, and feature engineering.
+SR 11-7 emphasizes that documentation should be thorough enough for an independent third party to understand how the model works and why certain decisions were made.
+
+d. Audit and Review Process
+Regular Audits: Conduct periodic internal and external audits to ensure ongoing compliance with SR 11-7. Audits should focus on both the effectiveness of the fraud detection model and adherence to internal risk management policies.
+Periodic Reviews: SR 11-7 requires periodic model reviews to ensure the model is still relevant to current fraud patterns and performing as expected. This review process also verifies that assumptions used in the model are still valid.
+
+
+3. Additional Best Practices for Compliance
+a. Data Minimization and Fairness
+Minimize Data Usage: Avoid using sensitive demographic information unless necessary. Even when using demographic data, ensure that the model is not unfairly biased against certain groups (e.g., age, gender, race).
+Bias Audits: Conduct bias testing regularly to ensure the model is not unfairly targeting specific demographic groups. This can be done using techniques such as fairness metrics (e.g., demographic parity, equalized odds) and auditing for disparate impact.
+b. Vendor Compliance
+Ensure Vendor Compliance: If you are using external vendors (e.g., FICO) for fraud detection, ensure they are compliant with both GDPR and SR 11-7. Request documentation from vendors regarding their compliance efforts.
+
+
+
+
+**************
+Example of a Workflow to Ensure Compliance
+1. Data Processing & Security:
+Encrypt all personal data used in the fraud detection model.
+Implement data anonymization where possible.
+Use secure data storage practices with limited access.
+
+2. Consent Management:
+Ensure customers have explicitly consented to their data being used.
+Provide options for customers to view, delete, or object to automated decision-making.
+
+3. Model Validation & Audits:
+Perform regular model validation and audits by independent teams.
+Stress-test the model for performance under extreme fraud conditions.
+
+4. Model Documentation:
+Keep detailed documentation of the model, data sources, and assumptions.
+Store documentation in a version-controlled environment for easy retrieval during audits.
+
+5. Bias Audits:
+Regularly test for bias to ensure that no particular group is disproportionately flagged for fraud.
+Implement corrective actions if bias is detected.
+
+6. Monitoring and Retraining:
+Continuously monitor model performance and retrain it based on new fraud patterns.
+Set up alerts to detect significant changes in model behavior
+
+
+Code for Bias Testing Using Fairness Metrics
+pip install fairlearn
+from fairlearn.metrics import demographic_parity_difference, equalized_odds_difference
+from sklearn.metrics import accuracy_score
+
+# y_true = true labels (fraud or not fraud)
+# y_pred = predictions from the model
+# sensitive_feature = the demographic group (e.g., race, gender)
+
+# Calculate demographic parity difference
+dp_difference = demographic_parity_difference(y_true, y_pred, sensitive_features=sensitive_feature)
+
+# Calculate equalized odds difference
+eo_difference = equalized_odds_difference(y_true, y_pred, sensitive_features=sensitive_feature)
+
+print("Demographic Parity Difference: ", dp_difference)
+print("Equalized Odds Difference: ", eo_difference)
+
+
+
+**This helps you ensure that your model is not disproportionately flagging certain demographic groups for fraud.
+

@@ -1,0 +1,147 @@
+1. Data Quality Check
+This checks for missing or corrupted values in your dataset and performs basic preprocessing.
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
+
+# Load your dataset
+# Replace 'data.csv' with your actual dataset
+df = pd.read_csv('data.csv')
+
+# Check for missing values
+missing_values = df.isnull().sum()
+
+# Print summary of missing values
+print("Missing Values in Each Column:\n", missing_values)
+
+# Fill missing values if needed (example: fill with mean for numeric columns)
+df.fillna(df.mean(), inplace=True)
+
+# Data cleaning (optional): Remove rows or handle outliers (e.g., negative transaction amounts)
+# df = df[df['TransactionAmount'] >= 0]
+
+
+2. Model Performance Metrics
+The following code evaluates the model’s performance using key metrics like accuracy, precision, recall, F1 score, and ROC-AUC.
+
+# Splitting data into training and testing sets
+X = df.drop(columns=['FraudFlag'])  # Drop the target column (FraudFlag)
+y = df['FraudFlag']  # Target column: 0 = non-fraud, 1 = fraud
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train a classifier (replace with your model; RandomForest is used here for illustration)
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_train)
+
+# Predictions
+y_pred = clf.predict(X_test)
+y_pred_proba = clf.predict_proba(X_test)[:, 1]
+
+# Performance Metrics
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+roc_auc = roc_auc_score(y_test, y_pred_proba)
+
+# Confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# Print Metrics
+print(f"Accuracy: {accuracy:.2f}")
+print(f"Precision: {precision:.2f}")
+print(f"Recall: {recall:.2f}")
+print(f"F1 Score: {f1:.2f}")
+print(f"ROC-AUC Score: {roc_auc:.2f}")
+print(f"Confusion Matrix:\n {conf_matrix}")
+
+
+
+3. Sensitivity Analysis (Stress Testing)
+This code tests the model under different stress conditions by adding noise or changes to the input data (e.g., transaction amounts, fraud percentage).
+
+# Stress Testing - adding noise to transaction amounts
+stress_test_X = X_test.copy()
+stress_test_X['TransactionAmount'] = stress_test_X['TransactionAmount'] * (1 + np.random.normal(0, 0.1, size=len(stress_test_X)))
+
+# Predictions on stressed data
+y_stress_pred = clf.predict(stress_test_X)
+y_stress_pred_proba = clf.predict_proba(stress_test_X)[:, 1]
+
+# Performance Metrics on stressed data
+accuracy_stress = accuracy_score(y_test, y_stress_pred)
+precision_stress = precision_score(y_test, y_stress_pred)
+recall_stress = recall_score(y_test, y_stress_pred)
+f1_stress = f1_score(y_test, y_stress_pred)
+roc_auc_stress = roc_auc_score(y_test, y_stress_pred_proba)
+
+# Print stressed data metrics
+print(f"Accuracy (Stress Test): {accuracy_stress:.2f}")
+print(f"Precision (Stress Test): {precision_stress:.2f}")
+print(f"Recall (Stress Test): {recall_stress:.2f}")
+print(f"F1 Score (Stress Test): {f1_stress:.2f}")
+print(f"ROC-AUC Score (Stress Test): {roc_auc_stress:.2f}")
+
+
+4. Out-of-Sample Testing
+This helps evaluate the model's performance on new data not used during training. The out-of-sample dataset should ideally represent recent or unseen fraud patterns.
+
+# Load new, unseen (out-of-sample) data
+out_of_sample_data = pd.read_csv('new_fraud_data.csv')
+
+# Preprocess the data (same steps as training data preprocessing)
+out_of_sample_data.fillna(out_of_sample_data.mean(), inplace=True)
+X_new = out_of_sample_data.drop(columns=['FraudFlag'])
+y_new = out_of_sample_data['FraudFlag']
+
+# Predict on new out-of-sample data
+y_new_pred = clf.predict(X_new)
+y_new_pred_proba = clf.predict_proba(X_new)[:, 1]
+
+# Performance Metrics on new data
+accuracy_new = accuracy_score(y_new, y_new_pred)
+precision_new = precision_score(y_new, y_new_pred)
+recall_new = recall_score(y_new, y_new_pred)
+f1_new = f1_score(y_new, y_new_pred)
+roc_auc_new = roc_auc_score(y_new, y_new_pred_proba)
+
+# Print new data performance
+print(f"Accuracy (New Data): {accuracy_new:.2f}")
+print(f"Precision (New Data): {precision_new:.2f}")
+print(f"Recall (New Data): {recall_new:.2f}")
+print(f"F1 Score (New Data): {f1_new:.2f}")
+print(f"ROC-AUC Score (New Data): {roc_auc_new:.2f}")
+
+
+
+5. Variable Importance Analysis
+This evaluates the importance of different input variables to the model’s predictions.
+
+# Get feature importance from RandomForest (or similar models that support feature importance)
+importances = clf.feature_importances_
+features = X.columns
+
+# Print sorted feature importance
+importance_df = pd.DataFrame({'Feature': features, 'Importance': importances}).sort_values(by='Importance', ascending=False)
+print(importance_df)
+
+# You can visualize feature importance using matplotlib or seaborn
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Plot feature importance
+plt.figure(figsize=(10, 6))
+sns.barplot(x='Importance', y='Feature', data=importance_df)
+plt.title('Feature Importance')
+plt.show()
+
+
+
+Additional Considerations:
+A. Bias & Fairness: Perform bias testing to ensure that certain demographic groups are not unfairly flagged for fraud.
+B. Model Monitoring: Set up regular monitoring to ensure the model remains effective as fraud patterns evolve.
+C. Compliance: Ensure that the model complies with applicable regulations (e.g., GDPR, SR 11-7).

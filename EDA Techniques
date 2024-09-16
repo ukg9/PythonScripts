@@ -1,0 +1,32 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load your dataset
+df = pd.read_csv('your_dataset.csv')
+
+# 1. Descriptive statistics
+print("Descriptive Statistics:")
+print(df.describe())
+
+# 2. Histograms for each variable
+df.hist(figsize=(10, 8), bins=20)
+plt.tight_layout()
+plt.show()
+
+# 3. Boxplots for all numerical variables
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=df[['NumberOfTrades_D&B', 'TIBYear_D&B', 'TotalUCCs_D&B', 'TotalEmployees_D&B', 'CurrentPadex_D&B']])
+plt.title("Box Plot of Bureau Variables")
+plt.show()
+
+# 4. Correlation Matrix with Heatmap
+corr_matrix = df[['NumberOfTrades_D&B', 'TIBYear_D&B', 'TotalUCCs_D&B', 'TotalEmployees_D&B', 'CurrentPadex_D&B']].corr()
+plt.figure(figsize=(8, 6))
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title("Correlation Matrix")
+plt.show()
+
+# 5. Pairplots for visualizing pairwise relationships
+sns.pairplot(df[['NumberOfTrades_D&B', 'TIBYear_D&B', 'TotalUCCs_D&B', 'TotalEmployees_D&B', 'CurrentPadex_D&B']])
+plt.show()

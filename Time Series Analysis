@@ -37,3 +37,60 @@ plt.title('Yearly Average of Total Employees (TIBYear_D&B)')
 plt.xlabel('Year')
 plt.ylabel('Total Employees')
 plt.show()
+
+
+**************************************************************
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load your dataset
+df = pd.read_csv('your_dataset.csv')
+
+# Ensure TIBYear_D&B is treated as a datetime format (if applicable)
+df['TIBYear_D&B'] = pd.to_datetime(df['TIBYear_D&B'], format='%Y')  # Adjust the format if needed
+
+# Set TIBYear_D&B as the index for time series analysis
+df.set_index('TIBYear_D&B', inplace=True)
+
+# List of variables to analyze
+variables = ['NumberOfTrades_D&B', 'TotalEmployees_D&B', 'TotalUCCs_D&B', 'CurrentPadex_D&B']
+
+# 1. Line plots for trend analysis of each variable
+plt.figure(figsize=(10, 6))
+
+for var in variables:
+    df[var].plot(label=var)
+
+plt.title('Trend Analysis of Bureau Variables Over Time (TIBYear_D&B)')
+plt.xlabel('TIBYear_D&B')
+plt.ylabel('Values')
+plt.legend()
+plt.show()
+
+# 2. Rolling averages for smoothing (12-month window) for each variable
+plt.figure(figsize=(10, 6))
+
+for var in variables:
+    df[var].rolling(window=12).mean().plot(label=f'Rolling Avg: {var}')
+
+plt.title('Rolling Average (12-month window) for Bureau Variables')
+plt.xlabel('TIBYear_D&B')
+plt.ylabel('Values')
+plt.legend()
+plt.show()
+
+# 3. Resample the data to yearly frequency and calculate the mean for each variable
+df_yearly = df[variables].resample('Y').mean()
+
+# Plot the yearly trends
+plt.figure(figsize=(10, 6))
+
+for var in variables:
+    df_yearly[var].plot(label=var)
+
+plt.title('Yearly Average of Bureau Variables')
+plt.xlabel('Year')
+plt.ylabel('Values')
+plt.legend()
+plt.show()

@@ -40,3 +40,28 @@ plt.show()
 
 # Print feature importance DataFrame
 print(importance_df)
+
+
+************************************************
+# Separate features and target
+X = df.drop(columns=['Target'])
+y = df['Target']
+
+# Apply OneHotEncoding to the categorical column (Feature2)
+encoder = OneHotEncoder(sparse=False)
+X_encoded = pd.DataFrame(encoder.fit_transform(X[['Feature2']]), columns=encoder.get_feature_names_out())
+
+# Merge the one-hot encoded columns back with the original dataset
+X = X.drop(columns=['Feature2'])
+X = pd.concat([X, X_encoded], axis=1)
+
+# Train an XGBoost model
+model = xgb.XGBClassifier()
+model.fit(X, y)
+
+# Explain the model using SHAP
+explainer = shap.Explainer(model)
+shap_values = explainer(X)
+
+# Plot SHAP summary
+shap.summary_plot(shap_values, X)

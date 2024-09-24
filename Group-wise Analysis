@@ -1,18 +1,3 @@
-import pandas as pd
-
-# Sample data for demonstration; replace this with your actual dataset
-# df = pd.read_csv('your_dataset.csv')  # Load your dataset
-
-data = {
-    'TIBYear': [2018, 2021, 2005, 2015, 1997, 2020, 2012, 2011, 2003, 1990],
-    'DNBScore': [150, 220, 130, 190, 175, 250, 175, 160, 180, 120],
-    'maxdelqstat': [1, 35, 3, 0, 62, 91, 45, 15, 25, 0],
-    'NumberOfTrades': [5, 2, 3, 8, 1, 7, 4, 0, 6, 9],
-    'NumberOfEmployees': [10, 20, 5, 15, 2, 8, 6, 12, 3, 30]
-}
-
-df = pd.DataFrame(data)
-
 # Function to categorize maxdelqstat
 def categorize_delqstat(x):
     if x == 0:
@@ -40,25 +25,32 @@ tib_labels = ['1999 and earlier', '2000-2009', '2010-2014', '2015-2019', '2020-2
 df['TIBYear_group'] = pd.cut(df['TIBYear'], bins=tib_bins, labels=tib_labels)
 
 # Create bins and labels for NumberOfTrades
-trades_bins = [0, 1, 3, 5, 10]
-trades_labels = ['0', '1-3', '4-5', '6 or more']
+trades_bins = [1, 50, 100, 200, 375]
+trades_labels = ['1-50', '51-100', '101-200', '201-375']
 df['NumberOfTrades_group'] = pd.cut(df['NumberOfTrades'], bins=trades_bins, labels=trades_labels)
 
-# Create bins and labels for NumberOfEmployees
-employees_bins = [0, 1, 5, 10, 20, 30]
-employees_labels = ['0', '1-5', '6-10', '11-20', '21 or more']
-df['NumberOfEmployees_group'] = pd.cut(df['NumberOfEmployees'], bins=employees_bins, labels=employees_labels)
+# Create bins and labels for TotalEmployees
+employees_bins = [0, 5, 10, 50, 100, 20000]
+employees_labels = ['0-5', '6-10', '11-50', '51-100', '101-20000']
+df['TotalEmployees_group'] = pd.cut(df['TotalEmployees'], bins=employees_bins, labels=employees_labels)
 
-# Create a new DataFrame to store results
-results = df.groupby('delinquency_category').agg({
-    'TIBYear_group': list,
-    'DNBScore_group': list,
-    'NumberOfTrades_group': list,
-    'NumberOfEmployees_group': list
-}).reset_index()
+# Create bins and labels for CurrentPadex
+padex_bins = [0, 20, 40, 60, 80, 90]
+padex_labels = ['0-20', '21-40', '41-60', '61-80', '81-89']
+df['CurrentPadex_group'] = pd.cut(df['CurrentPadex'], bins=padex_bins, labels=padex_labels)
 
-# Rename columns for clarity
-results.columns = ['Delinquency Category', 'TIBYear Groups', 'DNBScore Groups', 'Number of Trades Groups', 'Number of Employees Groups']
+# Create a crosstab to summarize counts
+count_table = pd.crosstab(
+    index=[df['delinquency_category'], df['TIBYear_group'], df['DNBScore_group'], 
+           df['NumberOfTrades_group'], df['TotalEmployees_group'], df['CurrentPadex_group']],
+    columns='Counts'
+)
 
-# Display the results
-print(results)
+# Reset the index for better readability
+count_table = count_table.reset_index()
+
+# Rename the counts column
+count_table.columns = list(count_table.columns[:-1]) + ['Number of Observations']
+
+# Display the count table
+print(count_table)

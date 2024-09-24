@@ -54,3 +54,68 @@ count_table.columns = list(count_table.columns[:-1]) + ['Number of Observations'
 
 # Display the count table
 print(count_table)
+
+
+***********************************
+
+import pandas as pd
+
+# Assuming df_v1 is your DataFrame; replace this with your actual dataset if needed
+# df_v1 = pd.read_csv('your_data.csv')  # Uncomment this line to load your dataset
+
+# Function to categorize maxdelqstat
+def categorize_delqstat(x):
+    if x == 0:
+        return 'No delinquency'
+    elif 1 <= x <= 30:
+        return '1-30 days past due'
+    elif 31 <= x <= 60:
+        return '31-60 days past due'
+    elif 61 <= x <= 90:
+        return '61-90 days past due'
+    else:
+        return 'Over 90 days past due'
+
+# Add a delinquency category column
+df_v1['delinquency_category'] = df_v1['maxdelqstat'].apply(categorize_delqstat)
+
+# Create bins and labels for DNBScore
+dnb_bins = [100, 150, 200, 250, 300]
+dnb_labels = ['100-149', '150-199', '200-249', '250-300']
+df_v1['DNBScore_group'] = pd.cut(df_v1['DNBScore'], bins=dnb_bins, labels=dnb_labels, right=False)
+
+# Create bins and labels for TIBYear
+tib_bins = [1990, 2000, 2010, 2015, 2023]
+tib_labels = ['1999 and earlier', '2000-2009', '2010-2014', '2015-2023']
+df_v1['TIBYear_group'] = pd.cut(df_v1['TIBYear'], bins=tib_bins, labels=tib_labels)
+
+# Create bins and labels for NumberOfTrades
+trades_bins = [0, 100, 376]
+trades_labels = ['1-100', '101+']
+df_v1['NumberOfTrades_group'] = pd.cut(df_v1['NumberOfTrades'], bins=trades_bins, labels=trades_labels)
+
+# Create bins and labels for CurrentPadex
+padex_bins = [-1, 40, 90]
+padex_labels = ['0-40', '41-89']
+df_v1['CurrentPadex_group'] = pd.cut(df_v1['CurrentPadex'], bins=padex_bins, labels=padex_labels)
+
+# Create bins and labels for scorecard with three categories
+scorecard_bins = [700, 721, 741, 763]  # Set the upper limit to 763, which is not inclusive
+scorecard_labels = ['701-720', '721-740', '741-762']
+df_v1['Scorecard_group'] = pd.cut(df_v1['scorecard'], bins=scorecard_bins, labels=scorecard_labels, right=False)
+
+# Create a crosstab to summarize counts
+count_table = pd.crosstab(
+    index=[df_v1['delinquency_category'], df_v1['TIBYear_group'], df_v1['DNBScore_group'], 
+           df_v1['NumberOfTrades_group'], df_v1['CurrentPadex_group'], df_v1['Scorecard_group']],
+    columns='Counts'
+)
+
+# Reset the index for better readability
+count_table = count_table.reset_index()
+
+# Rename the counts column
+count_table.columns = list(count_table.columns[:-1]) + ['Number of Observations']
+
+# Display the count table
+print(count_table)

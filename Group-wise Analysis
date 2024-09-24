@@ -1,0 +1,50 @@
+# Create bins for TIBYear and DNBScore
+tib_bins = [0, 1999, 2009, 2014, 2019, 2023]
+tib_labels = ['Senior', 'Experienced', 'Established', 'Young', 'New']
+df['TIBYear_group'] = pd.cut(df['TIBYear'], bins=tib_bins, labels=tib_labels)
+
+score_bins = [100, 149, 199, 249, 300]
+score_labels = ['Very Low', 'Low', 'Medium', 'High']
+df['DNBScore_group'] = pd.cut(df['DNBScore'], bins=score_bins, labels=score_labels)
+
+# Group by TIBYear_group and DNBScore_group, and look at the mean of maxdelqstat
+result = df.groupby(['TIBYear_group', 'DNBScore_group'])['maxdelqstat'].mean().unstack()
+print(result)
+
+***************************************************
+import pandas as pd
+
+# Sample data
+data = {'TIBYear': [2018, 2021, 2005, 2015, 1997, 2020],
+        'DNBScore': [150, 220, 130, 190, 175, 250],
+        'maxdelqstat': [1, 35, 3, 0, 62, 91]}
+
+df = pd.DataFrame(data)
+
+# Create bins for TIBYear and DNBScore
+tib_bins = [0, 1999, 2009, 2014, 2019, 2023]
+tib_labels = ['Senior', 'Experienced', 'Established', 'Young', 'New']
+df['TIBYear_group'] = pd.cut(df['TIBYear'], bins=tib_bins, labels=tib_labels)
+
+score_bins = [100, 149, 199, 249, 300]
+score_labels = ['Very Low', 'Low', 'Medium', 'High']
+df['DNBScore_group'] = pd.cut(df['DNBScore'], bins=score_bins, labels=score_labels)
+
+# Categorize maxdelqstat
+def categorize_delqstat(x):
+    if x == 0:
+        return 'No delinquency'
+    elif 1 <= x <= 30:
+        return 'Minor delinquency'
+    elif 31 <= x <= 60:
+        return 'Moderate delinquency'
+    elif 61 <= x <= 90:
+        return 'Severe delinquency'
+    else:
+        return 'Critical delinquency'
+
+df['delinquency_category'] = df['maxdelqstat'].apply(categorize_delqstat)
+
+# Group by TIBYear and DNBScore to see the delinquency categories
+grouped = df.groupby(['TIBYear_group', 'DNBScore_group'])['delinquency_category'].apply(list).unstack()
+print(grouped)

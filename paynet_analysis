@@ -1,3 +1,19 @@
+# Classification logic
+def classify_risk(row):
+    if row['MasterScorePN'] > 700 and row['MaxDelqStat'] <= 1:
+        return 'Low Risk'
+    elif row['MasterScorePN'] < 600 or row['MaxDelqStat'] > 1:
+        return 'High Risk'
+    else:
+        return 'Moderate Risk'  # Optional
+
+# Apply classification
+df['Classification'] = df.apply(classify_risk, axis=1)
+
+print(df)
+****************************8
+
+
 1. Segmentation and Profiling: Segmentation involves grouping your good leads into distinct clusters based on similar characteristics.
 
 from sklearn.cluster import KMeans

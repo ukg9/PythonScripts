@@ -93,25 +93,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load your dataset (uncomment and modify to load your data)
-# df = pd.read_csv('your_dataset.csv')
-
-# Sample data creation (remove this in your actual code)
-data = {
-    'MaxDelqStat': [0, 1, 31, 61, 91, 121, 151, 181],
-    'MasterScorePN': [700, 710, 720, 680, 640, 650, 630, 620],
-    'GrossOrigRecvPN': [1000, 2000, 1500, 2500, 3000, 1800, 1600, 1400],
-    'HighCreditPN': [1200, 2500, 1700, 3000, 3200, 1900, 1600, 1300],
-    'OutstandingRecvPN': [500, 600, 700, 800, 900, 1000, 1100, 1200],
-    'LastdeliqPN': [1995, 2020, 2010, 2015, 2018, 2021, 2023, 2022],
-    'Total31PN88': [100, 200, 150, 300, 400, 500, 600, 700],
-    'TotalScorePN': [146, 155, 160, 170, 180, 190, 200, 210],
-    'PaymentPastDuePN': [100, 200, 300, 400, 500, 600, 700, 800],
-    'OldestContractDatePN': [2021, 2022, 2023, 2020, 2019, 2018, 2017, 2016],
-    'DueToDatePN': [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032]
-}
-df = pd.DataFrame(data)
-
 # Categorize MaxDelqStat
 def categorize_delinquency(stat):
     if stat == 0:

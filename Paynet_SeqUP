@@ -192,6 +192,68 @@ for risk_category, analysis in risk_segment_summary.items():
 
 
 
+************************************************************************************************************************************************
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Assuming df is your DataFrame containing the data
+
+# Step 1: Classify leads based on MasterScorePN
+def classify_risk(row):
+    if row['MasterScorePN'] >= 300 and row['MasterScorePN'] <= 687:
+        return 'High Risk'
+    elif row['MasterScorePN'] >= 688 and row['MasterScorePN'] <= 698:
+        return 'Moderate Risk'
+    elif row['MasterScorePN'] >= 699 and row['MasterScorePN'] <= 800:
+        return 'Low Risk'
+    return 'Unknown'
+
+df['RiskCategory'] = df.apply(classify_risk, axis=1)
+
+# Step 2: Analyze high-gain features based on risk categories
+summary_stats = df.groupby('RiskCategory')[['PaymentPastDuePN', 'OldestContractDatePN', 'LastdeliqPN', 'Total31PN88']].describe()
+
+# Visualization for PaymentPastDuePN - Histogram
+plt.figure(figsize=(10, 6))
+sns.histplot(data=df, x='PaymentPastDuePN', hue='RiskCategory', multiple='stack', bins=30, kde=True)
+plt.title('Histogram of Payment Past Due by Risk Category')
+plt.xlabel('Payment Past Due')
+plt.ylabel('Frequency')
+plt.show()
+
+# Visualization for Total31PN88 - Histogram
+plt.figure(figsize=(10, 6))
+sns.histplot(data=df, x='Total31PN88', hue='RiskCategory', multiple='stack', bins=30, kde=True)
+plt.title('Histogram of Total 31 Days Past Due by Risk Category')
+plt.xlabel('Total 31 Days Past Due')
+plt.ylabel('Frequency')
+plt.show()
+
+# View summary statistics
+print(summary_stats)
+
+
+
+
+# Visualization for PaymentPastDuePN - Line Plot
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=df, x='RiskCategory', y='PaymentPastDuePN', estimator='mean', marker='o')
+plt.title('Mean Payment Past Due by Risk Category')
+plt.xlabel('Risk Category')
+plt.ylabel('Mean Payment Past Due')
+plt.xticks(rotation=45)
+plt.show()
+
+# Visualization for Total31PN88 - Line Plot
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=df, x='RiskCategory', y='Total31PN88', estimator='mean', marker='o')
+plt.title('Mean Total 31 Days Past Due by Risk Category')
+plt.xlabel('Risk Category')
+plt.ylabel('Mean Total 31 Days Past Due')
+plt.xticks(rotation=45)
+plt.show()
 
 
 

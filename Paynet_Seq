@@ -1,0 +1,94 @@
+Checking the Features Importance
+
+1. COrrelation analysis:
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load your dataset
+# df = pd.read_csv('your_dataset.csv')  # Replace with your dataset
+
+# Calculate the correlation matrix
+correlation_matrix = df.corr()
+
+# Display the correlation matrix
+plt.figure(figsize=(12, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Matrix')
+plt.show()
+
+# Alternatively, get correlation with a specific variable
+# For example, correlation with 'MasterScorePN':
+print(df.corr()['MasterScorePN'].sort_values(ascending=False))
+
+2. PCA
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
+# Standardize the features before performing PCA
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(df.dropna())  # Drop rows with missing values for PCA
+
+# Perform PCA
+pca = PCA(n_components=5)  # You can adjust the number of components
+pca_result = pca.fit_transform(scaled_data)
+
+# Explained variance ratio
+explained_variance = pca.explained_variance_ratio_
+print(f'Explained Variance Ratio by PCA Components: {explained_variance}')
+
+# Plot the cumulative explained variance
+plt.figure(figsize=(8, 5))
+plt.plot(np.cumsum(explained_variance))
+plt.xlabel('Number of Components')
+plt.ylabel('Cumulative Explained Variance')
+plt.title('PCA Explained Variance')
+plt.grid()
+plt.show()
+
+# View the loadings (how much each feature contributes to the components)
+pca_loadings = pd.DataFrame(pca.components_.T, index=df.columns, columns=[f'PC{i+1}' for i in range(pca.n_components)])
+print(pca_loadings)
+
+3. Clustering
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+# Determine the optimal number of clusters using the Elbow Method
+wcss = []  # Within-cluster sum of squares
+for i in range(1, 11):  # Test clusters from 1 to 10
+    kmeans = KMeans(n_clusters=i, random_state=42)
+    kmeans.fit(scaled_data)
+    wcss.append(kmeans.inertia_)  # Inertia is the sum of squared distances to centroids
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, 11), wcss, marker='o')
+plt.xlabel('Number of Clusters')
+plt.ylabel('WCSS')
+plt.title('Elbow Method for Optimal Clusters')
+plt.grid()
+plt.show()
+
+# Based on the Elbow method, choose an optimal number of clusters (say, k=3)
+optimal_clusters = 3
+kmeans = KMeans(n_clusters=optimal_clusters, random_state=42)
+cluster_labels = kmeans.fit_predict(scaled_data)
+
+# Add cluster labels to the original dataframe
+df['Cluster'] = cluster_labels
+
+# Calculate silhouette score to evaluate clustering quality
+silhouette_avg = silhouette_score(scaled_data, cluster_labels)
+print(f'Silhouette Score for k={optimal_clusters}: {silhouette_avg}')
+
+# Visualize clustering results with PCA (2D projection)
+pca_2d = PCA(n_components=2).fit_transform(scaled_data)
+plt.figure(figsize=(10, 6))
+plt.scatter(pca_2d[:, 0], pca_2d[:, 1], c=cluster_labels, cmap='viridis', marker='o', edgecolor='k', s=50)
+plt.title(f'Clustering Visualization (k={optimal_clusters})')
+plt.xlabel('PCA Component 1')
+plt.ylabel('PCA Component 2')
+plt.grid()
+plt.colorbar()
+plt.show()

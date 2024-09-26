@@ -1,0 +1,208 @@
+# Impute missing values in MaxDelqStat with 0
+df['MaxDelqStat'].fillna(0, inplace=True)
+
+# Calculate the 99th percentile value
+p99_value = df['Total31PN88'].quantile(0.99)
+
+# Remove outliers above P99
+df_filtered = df[df['Total31PN88'] <= p99_value]
+
+
+Calculate correlation coefficients or perform regression analysis to see how each feature relates to MasterScorePN
+# Calculate correlation coefficients
+correlation_matrix = df.corr()
+
+# Extract correlation coefficients with MasterScorePN
+correlation_with_master_score = correlation_matrix['MasterScorePN']
+print("Correlation coefficients with MasterScorePN:")
+print(correlation_with_master_score)
+
+Performing Regression Analysis
+import statsmodels.api as sm
+
+# Define the independent variables (features) and dependent variable (target)
+X = df[['MaxDelqStat', 'GrossOrigRecvPN', 'HighCreditPN']]  # independent variables
+y = df['MasterScorePN']  # dependent variable
+
+# Add a constant to the model (intercept)
+X = sm.add_constant(X)
+
+# Fit the OLS model
+model = sm.OLS(y, X).fit()
+
+# Print the regression results
+print(model.summary())
+
+*************
+Correlation Coefficients: The corr() method calculates the pairwise correlation between all features. The resulting correlation coefficients are printed, showing how each feature relates to MasterScorePN.
+*************
+
+Classification Implementation:
+# Define bins, labels, and ranges
+bins = [300, 687, 698, 800]  # Edges of the bins
+labels = ['High Risk', 'Moderate Risk', 'Low Risk']  # Labels for the bins
+ranges = ['300 to 687', '688 to 698', '699 to 800']  # Corresponding ranges
+
+# Create a new column for classification
+df['Risk Classification'] = pd.cut(df['MasterScorePN'], bins=bins, labels=labels, right=True)
+
+# Create a new column for ranges based on the classification
+df['Score Range'] = pd.cut(df['MasterScorePN'], bins=bins, labels=ranges, right=True)
+
+print(df)
+
+***************************
+#Risk Classification and Score Range & Risk Segmentation Analysis
+
+df = pd.DataFrame(data)
+
+# Define bins, labels, and ranges
+bins = [300, 687, 698, 800]  # Edges of the bins
+labels = ['High Risk', 'Moderate Risk', 'Low Risk']  # Labels for the bins
+ranges = ['300 to 687', '688 to 698', '699 to 800']  # Corresponding ranges
+
+# Create new columns for classification and score range
+df['Risk Classification'] = pd.cut(df['MasterScorePN'], bins=bins, labels=labels, right=True)
+df['Score Range'] = pd.cut(df['MasterScorePN'], bins=bins, labels=ranges, right=True)
+
+# Analyze High Risk Leads
+high_risk_leads = df[df['Risk Classification'] == 'High Risk']
+high_risk_analysis = {
+    'Count': high_risk_leads.shape[0],
+    'Average PaymentPastDuePN': high_risk_leads['PaymentPastDuePN'].mean(),
+    'Average OldestContractDatePN': high_risk_leads['OldestContractDatePN'].mean(),
+}
+
+# Analyze Moderate Risk Leads
+moderate_risk_leads = df[df['Risk Classification'] == 'Moderate Risk']
+moderate_risk_analysis = {
+    'Count': moderate_risk_leads.shape[0],
+    'Average PaymentPastDuePN': moderate_risk_leads['PaymentPastDuePN'].mean(),
+    'Average OldestContractDatePN': moderate_risk_leads['OldestContractDatePN'].mean(),
+}
+
+# Analyze Low Risk Leads
+low_risk_leads = df[df['Risk Classification'] == 'Low Risk']
+low_risk_analysis = {
+    'Count': low_risk_leads.shape[0],
+    'Average PaymentPastDuePN': low_risk_leads['PaymentPastDuePN'].mean(),
+    'Average OldestContractDatePN': low_risk_leads['OldestContractDatePN'].mean(),
+}
+
+# Summary of Analysis
+risk_segment_summary = {
+    'High Risk Leads': high_risk_analysis,
+    'Moderate Risk Leads': moderate_risk_analysis,
+    'Low Risk Leads': low_risk_analysis,
+}
+
+# Print the DataFrame with classifications
+print("Classified Leads DataFrame:")
+print(df)
+print()
+
+# Print the results of the analysis
+for risk_category, analysis in risk_segment_summary.items():
+    print(f"{risk_category}:")
+    for key, value in analysis.items():
+        print(f"  {key}: {value}")
+    print()
+
+
+
+**************************************
+
+
+MasterScorePN: The primary score for risk classification, ranging from 300 to 850.
+PaymentPastDuePN: Number of payments overdue, reflecting reliability and payment behavior.
+OldestContractDatePN: Date of the oldest contract, indicating the duration of the relationship.
+Risk Classification: Categorizes leads into High Risk, Moderate Risk, or Low Risk based on MasterScorePN.
+Score Range: Represents the score range for each risk classification.
+Total31PN88: Total number of accounts or debts that are 31 days past due, useful for assessing overall delinquency risk.
+
+
+
+import pandas as pd
+
+# Sample DataFrame with Total31PN88 included
+data = {
+    'MasterScorePN': [300, 650, 720, 695, 800, 688, 500, 670, 699],
+    'PaymentPastDuePN': [1, 0, 0, 2, 0, 1, 3, 1, 0],
+    'OldestContractDatePN': [2020, 2019, 2021, 2020, 2022, 2018, 2020, 2019, 2023],
+    'Total31PN88': [2, 0, 1, 1, 0, 1, 3, 2, 0]  # Example values for Total31PN88
+}
+
+df = pd.DataFrame(data)
+
+# Define bins, labels, and ranges
+bins = [300, 687, 698, 800]  # Edges of the bins
+labels = ['High Risk', 'Moderate Risk', 'Low Risk']  # Labels for the bins
+ranges = ['300 to 687', '688 to 698', '699 to 800']  # Corresponding ranges
+
+# Create new columns for classification and score range
+df['Risk Classification'] = pd.cut(df['MasterScorePN'], bins=bins, labels=labels, right=True)
+df['Score Range'] = pd.cut(df['MasterScorePN'], bins=bins, labels=ranges, right=True)
+
+# Analyze High Risk Leads
+high_risk_leads = df[df['Risk Classification'] == 'High Risk']
+high_risk_analysis = {
+    'Count': high_risk_leads.shape[0],
+    'Average PaymentPastDuePN': high_risk_leads['PaymentPastDuePN'].mean(),
+    'Average OldestContractDatePN': high_risk_leads['OldestContractDatePN'].mean(),
+    'Average Total31PN88': high_risk_leads['Total31PN88'].mean()  # Added Total31PN88 analysis
+}
+
+# Analyze Moderate Risk Leads
+moderate_risk_leads = df[df['Risk Classification'] == 'Moderate Risk']
+moderate_risk_analysis = {
+    'Count': moderate_risk_leads.shape[0],
+    'Average PaymentPastDuePN': moderate_risk_leads['PaymentPastDuePN'].mean(),
+    'Average OldestContractDatePN': moderate_risk_leads['OldestContractDatePN'].mean(),
+    'Average Total31PN88': moderate_risk_leads['Total31PN88'].mean()  # Added Total31PN88 analysis
+}
+
+# Analyze Low Risk Leads
+low_risk_leads = df[df['Risk Classification'] == 'Low Risk']
+low_risk_analysis = {
+    'Count': low_risk_leads.shape[0],
+    'Average PaymentPastDuePN': low_risk_leads['PaymentPastDuePN'].mean(),
+    'Average OldestContractDatePN': low_risk_leads['OldestContractDatePN'].mean(),
+    'Average Total31PN88': low_risk_leads['Total31PN88'].mean()  # Added Total31PN88 analysis
+}
+
+# Summary of Analysis
+risk_segment_summary = {
+    'High Risk Leads': high_risk_analysis,
+    'Moderate Risk Leads': moderate_risk_analysis,
+    'Low Risk Leads': low_risk_analysis,
+}
+
+# Print the DataFrame with classifications
+print("Classified Leads DataFrame:")
+print(df)
+print()
+
+# Print the results of the analysis
+for risk_category, analysis in risk_segment_summary.items():
+    print(f"{risk_category}:")
+    for key, value in analysis.items():
+        print(f"  {key}: {value}")
+    print()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

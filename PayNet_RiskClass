@@ -1,0 +1,87 @@
+import pandas as pd
+
+df = pd.DataFrame(data)
+
+# Function to classify risk using all variables
+def classify_risk_all(master_score, payment_past_due, oldest_contract_date, last_deliq, total_31):
+    current_year = 2023  # Assuming the current year is 2023
+    contract_age = current_year - oldest_contract_date  # Calculate age of the contract
+    
+    if (master_score < 688 and 
+        (payment_past_due > 5000 or total_31 > 3) and 
+        last_deliq >= 2023 and 
+        contract_age < 2):  # Less than 2 years old
+        return 'High Risk'
+    
+    elif (688 <= master_score <= 698 and 
+          (0 < payment_past_due <= 5000) and 
+          (1 <= total_31 <= 3) and 
+          last_deliq >= 2021 and 
+          (2 <= contract_age <= 5)):  # Between 2 to 5 years old
+        return 'Moderate Risk'
+    
+    elif (master_score > 698 and 
+          payment_past_due == 0 and 
+          total_31 == 0 and 
+          last_deliq < 2021 and 
+          contract_age > 5):  # More than 5 years old
+        return 'Low Risk'
+    
+    else:
+        return 'Unclassified'
+
+# Apply classification function to each row in the DataFrame
+df['Risk Classification'] = df.apply(
+    lambda row: classify_risk_all(
+        row['MasterScorePN'],
+        row['PaymentPastDuePN'],
+        row['OldestContractDatePN'],
+        row['LastdeliqPN'],
+        row['Total31PN88']
+    ),
+    axis=1
+)
+
+# Display the updated DataFrame with risk classification
+print(df[['CustomerID', 'MasterScorePN', 'PaymentPastDuePN', 'OldestContractDatePN', 'LastdeliqPN', 'Total31PN88', 'Risk Classification']])
+
+
+
+
+
+**********************************************************
+
+XGBOOST CLASSIFIER:
+
+import pandas as pd
+import xgboost as xgb
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Load your new dataset
+# df_new = pd.read_csv('your_new_dataset.csv')  # Uncomment and modify to load your data
+
+# Define features and target variable
+X = df_new[['MaxDelqStat', 'GrossOrigRecvPN', 'HighCreditPN', 'OutstandingRecvPN',
+             'LastdeliqPN', 'Total31PN88', 'PaymentPastDuePN', 
+             'OldestContractDatePN', 'DueToDatePN']]  # Include all relevant features
+y = df_new['BinaryTargetVariable']  # Replace with your binary target variable name
+
+# Initialize the XGBoost Classifier
+model = xgb.XGBClassifier(objective='binary:logistic', random_state=42)
+
+# Fit the model on the entire dataset
+model.fit(X, y)
+
+# Make predictions
+y_pred = model.predict(X)
+
+# Evaluate the model
+accuracy = accuracy_score(y, y_pred)
+conf_matrix = confusion_matrix(y, y_pred)
+class_report = classification_report(y, y_pred)
+
+print(f'Accuracy: {accuracy}')
+print('Confusion Matrix:')
+print(conf_matrix)
+print('Classification Report:')
+print(class_report)

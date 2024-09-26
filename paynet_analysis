@@ -1,0 +1,171 @@
+1. Segmentation and Profiling: Segmentation involves grouping your good leads into distinct clusters based on similar characteristics.
+
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+
+# Select relevant features for clustering
+features = df[['MasterScorePN', 'HighCreditPN', 'PaymentPastDuePN', 'OutstandingRecvPN']]
+features = features.dropna()  # Drop missing values for simplicity
+
+# Standardize the features
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(features)
+
+# Apply K-means clustering
+kmeans = KMeans(n_clusters=3, random_state=42)  # You can choose the number of clusters
+clusters = kmeans.fit_predict(scaled_features)
+
+# Add cluster labels to the original dataframe
+df['Cluster'] = clusters
+
+# Profile each cluster by calculating the mean of each feature
+cluster_profile = df.groupby('Cluster').mean()
+print(cluster_profile)
+
+**Interpretation:
+Cluster Profiles: Review the mean values of each feature for each cluster. This helps identify characteristics of each segment (e.g., one cluster might have high credit scores but high outstanding receivables).
+
+******************************
+2. Risk Scoring
+
+# Define weights for each feature
+weights = {'MasterScorePN': 0.4, 'HighCreditPN': 0.2, 'PaymentPastDuePN': 0.2, 'OutstandingRecvPN': 0.2}
+
+# Normalize the features to a 0-1 scale
+for feature in weights.keys():
+    df[feature + '_norm'] = (df[feature] - df[feature].min()) / (df[feature].max() - df[feature].min())
+
+# Calculate custom risk score
+df['RiskScore'] = (weights['MasterScorePN'] * df['MasterScorePN_norm'] +
+                   weights['HighCreditPN'] * df['HighCreditPN_norm'] +
+                   weights['PaymentPastDuePN'] * df['PaymentPastDuePN_norm'] +
+                   weights['OutstandingRecvPN'] * df['OutstandingRecvPN_norm'])
+
+# Define risk categories based on RiskScore
+df['RiskCategory'] = pd.cut(df['RiskScore'], bins=[0, 0.33, 0.66, 1], labels=['Low', 'Medium', 'High'])
+print(df[['MasterScorePN', 'RiskScore', 'RiskCategory']].head())
+
+******************************
+
+3. Performance Analysis: Trend Analysis
+
+import matplotlib.pyplot as plt
+
+# Convert 'DueToDatePN' to datetime if it's not already
+df['DueToDatePN'] = pd.to_datetime(df['DueToDatePN'])
+
+# Extract year and month for trend analysis
+df['YearMonth'] = df['DueToDatePN'].dt.to_period('M')
+
+# Calculate the monthly average of 'OutstandingRecvPN'
+monthly_trend = df.groupby('YearMonth')['OutstandingRecvPN'].mean().reset_index()
+
+# Plot the trend
+plt.figure(figsize=(12, 6))
+plt.plot(monthly_trend['YearMonth'].astype(str), monthly_trend['OutstandingRecvPN'], marker='o', color='b')
+plt.xticks(rotation=45)
+plt.title('Monthly Average of Outstanding Receivables')
+plt.xlabel('Month')
+plt.ylabel('Average Outstanding Receivables')
+plt.grid(True)
+plt.show()
+****************************************
+4. Stress Testing and scenario analysis
+# Function to apply stress test
+def apply_stress_test(df, feature, change_percent):
+    """Increase or decrease the feature by a certain percent."""
+    stressed_df = df.copy()
+    stressed_df[feature] *= (1 + change_percent / 100)
+    return stressed_df
+
+# Apply a stress test: Increase 'HighCreditPN' by 10%
+stressed_df = apply_stress_test(df, 'HighCreditPN', 10)
+
+# Calculate changes in average Risk Score after stress test
+original_avg_score = df['RiskScore'].mean()
+stressed_avg_score = stressed_df['RiskScore'].mean()
+print(f'Original Average Risk Score: {original_avg_score:.2f}')
+print(f'Stressed Average Risk Score: {stressed_avg_score:.2f}')
+***************************************************************************************
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load your dataset (uncomment and modify to load your data)
+# df = pd.read_csv('your_dataset.csv')
+
+# Sample data creation (remove this in your actual code)
+data = {
+    'MaxDelqStat': [0, 1, 31, 61, 91, 121, 151, 181],
+    'MasterScorePN': [700, 710, 720, 680, 640, 650, 630, 620],
+    'GrossOrigRecvPN': [1000, 2000, 1500, 2500, 3000, 1800, 1600, 1400],
+    'HighCreditPN': [1200, 2500, 1700, 3000, 3200, 1900, 1600, 1300],
+    'OutstandingRecvPN': [500, 600, 700, 800, 900, 1000, 1100, 1200],
+    'LastdeliqPN': [1995, 2020, 2010, 2015, 2018, 2021, 2023, 2022],
+    'Total31PN88': [100, 200, 150, 300, 400, 500, 600, 700],
+    'TotalScorePN': [146, 155, 160, 170, 180, 190, 200, 210],
+    'PaymentPastDuePN': [100, 200, 300, 400, 500, 600, 700, 800],
+    'OldestContractDatePN': [2021, 2022, 2023, 2020, 2019, 2018, 2017, 2016],
+    'DueToDatePN': [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032]
+}
+df = pd.DataFrame(data)
+
+# Categorize MaxDelqStat
+def categorize_delinquency(stat):
+    if stat == 0:
+        return 'No Delinquency'
+    elif stat == 1:
+        return 'Minor Delinquency'
+    elif 1 < stat <= 30:
+        return 'Minor Delinquency'
+    elif 31 <= stat <= 60:
+        return 'Moderate Delinquency'
+    elif 61 <= stat <= 90:
+        return 'Severe Delinquency'
+    else:
+        return 'Critical Delinquency'
+
+df['DelinquencyCategory'] = df['MaxDelqStat'].apply(categorize_delinquency)
+
+# Calculate Risk Score considering Delinquency
+def calculate_risk_score(row):
+    penalty = 0
+    if row['MaxDelqStat'] > 0:
+        penalty = (row['MaxDelqStat'] / 100) * 50  # Example penalty logic
+    return max(0, row['TotalScorePN'] - penalty)  # Ensure score doesn't go below 0
+
+df['RiskScore'] = df.apply(calculate_risk_score, axis=1)
+
+# Summary Statistics by Delinquency Category
+summary = df.groupby('DelinquencyCategory').agg(
+    AvgTotalScore=('TotalScorePN', 'mean'),
+    AvgOutstandingRecv=('OutstandingRecvPN', 'mean'),
+    AvgRiskScore=('RiskScore', 'mean'),
+    Count=('RiskScore', 'count')
+).reset_index()
+
+# Display the summary DataFrame
+print("Summary Statistics by Delinquency Category:")
+print(summary)
+
+# Correlation Analysis
+correlation_matrix = df.corr()
+
+# Displaying the correlation matrix as a DataFrame
+print("\nCorrelation Matrix:")
+print(correlation_matrix)
+
+# Histogram for Risk Score Distribution
+plt.figure(figsize=(10, 6))
+sns.histplot(df['RiskScore'], bins=10, kde=True)
+plt.title('Risk Score Distribution')
+plt.xlabel('Risk Score')
+plt.ylabel('Frequency')
+plt.grid()
+plt.show()
+
+# Optionally, save the summary to a CSV
+# summary.to_csv('summary_analysis_by_delinquency_category.csv', index=False)
+

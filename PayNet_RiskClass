@@ -1,3 +1,34 @@
+# Updated High Risk Logic to fit the dataset statistics
+def classify_risk_all_updated(master_score, due_to_date, oldest_contract_date, last_deliq, total_31):
+    current_year = 2023  # Assuming the current year is 2023
+    contract_age = current_year - oldest_contract_date  # Calculate age of the contract
+
+    # Updated logic with revised threshold for DueToDatePN
+    if (master_score < 688 and 
+        (due_to_date < 730 or total_31 > 3) and  # DueToDatePN less than 2 years or Total31PN88 more than 3
+        last_deliq >= 2023 and 
+        contract_age < 2):  # Less than 2 years old
+        return 'High Risk'
+    
+    elif (688 <= master_score <= 698 and 
+          (730 <= due_to_date <= 1460) and  # DueToDatePN between 2 to 4 years
+          (1 <= total_31 <= 3) and 
+          last_deliq >= 2021 and 
+          (2 <= contract_age <= 5)):  # Between 2 to 5 years old
+        return 'Moderate Risk'
+    
+    elif (master_score > 698 and 
+          due_to_date > 1460 and  # DueToDatePN more than 4 years
+          total_31 == 0 and 
+          last_deliq < 2021 and 
+          contract_age > 5):  # More than 5 years old
+        return 'Low Risk'
+    
+    else:
+        return 'Unclassified'
+
+
+****************************************************************************************************
 import pandas as pd
 
 df = pd.DataFrame(data)

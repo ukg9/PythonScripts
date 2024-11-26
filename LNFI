@@ -1,36 +1,40 @@
-The LexisNexis Fraud Intelligence Model V1 requires adherence to a structured, step-by-step process for operation. Below are the detailed procedures for running the model effectively:
+1. Data Sources
+Internal Data: Data from LexisNexis systems containing historical fraud cases, transactional records, and application attributes.
+External Data: Contributions from third-party data providers, such as identity verification data, credit history, and other public record sources.
+2. Inputs
+Primary Attributes: Features like identity data (e.g., SSN, DOB, name, and address) and transactional information.
+Pre-Processed Data: Attributes already cleaned and standardized for input into the model.
+3. Quality Assurance Control Points
+Data Cleaning and Validation:
+Missing values handled appropriately (e.g., imputation or flagging).
+Validation against business rules to ensure data accuracy.
+Check for Data Distribution: Confirm that attribute distributions match the expected patterns.
+4. Intermediate Processes and Results
+Feature Engineering:
+Recursive Feature Elimination (RFE) is used to optimize feature selection.
+Model Execution:
+The XGBoost algorithm processes input attributes to generate a fraud risk score.
+Intermediate outputs such as decision tree splits, feature importance rankings, and cumulative error metrics are produced.
+5. Outputs
+Fraud Risk Scores:
+Each transaction or application receives a score indicating its likelihood of being fraudulent (on a scale of 0 to 998).
+Warning Codes:
+Flags for specific high-risk conditions detected by the model.
+6. Reports
+Operational Reports: Fraud detection rate (FDR), area under the curve (AUC), and risk score distributions are summarized.
+Compliance and Performance Reports: Include additional metrics to satisfy internal and external review standards.
+7. Feedback Loop
+Review Mechanism: Fraud case outcomes are evaluated for continuous improvement and potential inclusion in future model iterations.
+Visual Representation
+The flow diagram would have the following components connected with directional arrows:
 
-Input Data Extraction and Preparation
-
-Extract relevant input data from the system, ensuring all required attributes (e.g., identity and transaction data) are available in the specified format.
-Perform data cleaning to address missing or erroneous values and apply any necessary transformations for compatibility with the model.
-Checking the Correctness of Input Data
-
-Validate the input data for completeness and correctness using predefined checks, such as ensuring no mandatory fields are missing or contain invalid values.
-Model Settings and Parameter Validation
-
-Ensure that all model settings, assumptions, and parameters are configured as per the standard operational guidelines.
-Verify that the settings align with the production scoring code.
-Initiating the Processing Component
-
-Launch the processing phase of the model, using the validated input data and the scoring algorithm (XGBoost implementation).
-Completion Verification
-
-Confirm that the model execution has completed successfully without errors or interruptions. Log the execution status for auditing purposes.
-Output Extraction
-
-Extract the model outputs, including fraud risk scores and associated warning codes, in the specified format.
-Validation of Model Outputs
-
-Check the outputs to ensure they are within the expected range (e.g., fraud risk scores between 0 and 998).
-Validate specific records, especially edge cases, to confirm that the model is scoring accurately.
-Report Generation
-
-Generate standard performance and operational reports, such as fraud detection rates (FDR), AUC metrics, and detailed attribute analyses.
-Report Distribution
-
-Distribute the reports to the designated stakeholders, ensuring that sensitive data is handled securely and in compliance with relevant regulations.
-By following these steps, users can ensure the accurate and consistent operation of the model, enabling reliable fraud risk assessment and decision-making. Adjustments or troubleshooting should be escalated to LexisNexis technical support if anomalies are detected during any step.
+Data Sources →
+Data Preparation and Validation →
+Feature Selection and Model Execution →
+Fraud Risk Scores and Warnings →
+Reports and Outputs →
+Feedback Loop (if applicable).
+This structure ensures clarity in demonstrating the end-to-end process and controls for data quality and accuracy within the LNFI model's operation.
 
 
 

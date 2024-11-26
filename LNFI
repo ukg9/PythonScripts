@@ -1,0 +1,39 @@
+The LexisNexis Fraud Intelligence Model V1 requires adherence to a structured, step-by-step process for operation. Below are the detailed procedures for running the model effectively:
+
+Input Data Extraction and Preparation
+
+Extract relevant input data from the system, ensuring all required attributes (e.g., identity and transaction data) are available in the specified format.
+Perform data cleaning to address missing or erroneous values and apply any necessary transformations for compatibility with the model.
+Checking the Correctness of Input Data
+
+Validate the input data for completeness and correctness using predefined checks, such as ensuring no mandatory fields are missing or contain invalid values.
+Model Settings and Parameter Validation
+
+Ensure that all model settings, assumptions, and parameters are configured as per the standard operational guidelines.
+Verify that the settings align with the production scoring code.
+Initiating the Processing Component
+
+Launch the processing phase of the model, using the validated input data and the scoring algorithm (XGBoost implementation).
+Completion Verification
+
+Confirm that the model execution has completed successfully without errors or interruptions. Log the execution status for auditing purposes.
+Output Extraction
+
+Extract the model outputs, including fraud risk scores and associated warning codes, in the specified format.
+Validation of Model Outputs
+
+Check the outputs to ensure they are within the expected range (e.g., fraud risk scores between 0 and 998).
+Validate specific records, especially edge cases, to confirm that the model is scoring accurately.
+Report Generation
+
+Generate standard performance and operational reports, such as fraud detection rates (FDR), AUC metrics, and detailed attribute analyses.
+Report Distribution
+
+Distribute the reports to the designated stakeholders, ensuring that sensitive data is handled securely and in compliance with relevant regulations.
+By following these steps, users can ensure the accurate and consistent operation of the model, enabling reliable fraud risk assessment and decision-making. Adjustments or troubleshooting should be escalated to LexisNexis technical support if anomalies are detected during any step.
+
+
+
+
+
+

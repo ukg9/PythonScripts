@@ -1,40 +1,20 @@
-1. Data Sources
-Internal Data: Data from LexisNexis systems containing historical fraud cases, transactional records, and application attributes.
-External Data: Contributions from third-party data providers, such as identity verification data, credit history, and other public record sources.
-2. Inputs
-Primary Attributes: Features like identity data (e.g., SSN, DOB, name, and address) and transactional information.
-Pre-Processed Data: Attributes already cleaned and standardized for input into the model.
-3. Quality Assurance Control Points
-Data Cleaning and Validation:
-Missing values handled appropriately (e.g., imputation or flagging).
-Validation against business rules to ensure data accuracy.
-Check for Data Distribution: Confirm that attribute distributions match the expected patterns.
-4. Intermediate Processes and Results
-Feature Engineering:
-Recursive Feature Elimination (RFE) is used to optimize feature selection.
-Model Execution:
-The XGBoost algorithm processes input attributes to generate a fraud risk score.
-Intermediate outputs such as decision tree splits, feature importance rankings, and cumulative error metrics are produced.
-5. Outputs
-Fraud Risk Scores:
-Each transaction or application receives a score indicating its likelihood of being fraudulent (on a scale of 0 to 998).
-Warning Codes:
-Flags for specific high-risk conditions detected by the model.
-6. Reports
-Operational Reports: Fraud detection rate (FDR), area under the curve (AUC), and risk score distributions are summarized.
-Compliance and Performance Reports: Include additional metrics to satisfy internal and external review standards.
-7. Feedback Loop
-Review Mechanism: Fraud case outcomes are evaluated for continuous improvement and potential inclusion in future model iterations.
-Visual Representation
-The flow diagram would have the following components connected with directional arrows:
+1. Fraud Detection Rate (FDR) and AUC Report
+Description: Consolidates metrics such as Fraud Detection Rate (FDR) and Area Under the Curve (AUC) to evaluate the model's efficiency and discriminatory power.
+Business Use: Provides an overall performance snapshot, helping stakeholders assess the model's ability to detect fraud and differentiate between fraudulent and non-fraudulent cases.
+2. Risk Score Distribution and Warning Code Report
+Description: Combines the distribution of fraud risk scores with specific warning codes for high-risk cases. This report highlights how applications or transactions are scored and flags cases that need further manual review.
+Business Use: Assists in setting thresholds for risk scores, tracking scoring trends over time, and identifying critical cases that require additional investigation by fraud analysts.
+3. Compliance Performance Report
+Description: Includes metrics to ensure the model adheres to compliance standards, such as fair lending and regulatory requirements.
+Business Use: Demonstrates that the model development and deployment comply with all applicable regulations and standards.
+4. Operational Monitoring Report
+Description: Summarizes daily operational statistics, including data processing success rates and error rates, to monitor the health and stability of the model.
+Business Use: Ensures that the model operates smoothly and identifies potential issues for resolution.
+5. Benchmarking Report
+Description: Compares the LNFI model’s performance against other models or benchmarks, demonstrating its effectiveness in business applications.
+Business Use: Justifies the choice of the LNFI model by highlighting its strengths relative to other approaches.
 
-Data Sources →
-Data Preparation and Validation →
-Feature Selection and Model Execution →
-Fraud Risk Scores and Warnings →
-Reports and Outputs →
-Feedback Loop (if applicable).
-This structure ensures clarity in demonstrating the end-to-end process and controls for data quality and accuracy within the LNFI model's operation.
+These reports ensure that the LNFI model remains transparent, effective, and aligned with business and compliance objectives.
 
 
 

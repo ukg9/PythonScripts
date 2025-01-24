@@ -5,7 +5,7 @@ Hope you're doing well.
 
 PFB the attached file containing the requirements for the Model Documentation Report (MDR). Based on our recent discussion, it is now clear that the model in question operates entirely as a rule-based model.
 
-Upon reviewing the vendor’s previously shared responses included in the attached file, we noticed that some of them may be partially accurate. For instance, references to statistical techniques such as stratified sampling or cross-validation, etc., do not appear to align with the nature of a rule-based model. We kindly request the vendor to clarify whether these responses are legitimate and applicable to this specific model.
+Upon reviewing the vendor’s previously shared responses included in the attached file, we noticed that some of them may be partially accurate. I have appended those responses under the column "Topic" with the subheading "Responses on Queries" for further review. For instance, references to statistical techniques such as stratified sampling or cross-validation, etc., do not appear to align with the nature of a rule-based model. We kindly request the vendor to clarify whether these responses are legitimate and applicable to this specific model.
 
 To ensure the accuracy of the MDR, we request the vendor to review and identify the responses relevant to this model and provide any necessary updates or corrections. Since these responses form the foundation of the documentation, it is crucial to align them with the model's actual functionality.
 
@@ -15,4 +15,6 @@ Looking forward to your response.
 
 Kind Regards,
 Uttam Kumar Gupta
+
+
 

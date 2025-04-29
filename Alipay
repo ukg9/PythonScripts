@@ -1,5 +1,9 @@
-Trigger Points:
-o	PSI > 0.10 for two consecutive periods
-o	Override Rate consistently >30%
-o	Fraud Capture Rate < 70%
-
+Metric / Field | Jan-25 | Feb-25 | Definition | Business Significance
+False Positive Rate | 22% | 28% | % of non-fraud transactions flagged by the model | High values lead to poor customer experience and excessive manual reviews
+True Positive Rate | 68% | 61% | % of actual frauds correctly flagged by the model | Indicates model effectiveness in catching fraud
+Manual Review Volume | 4,500 | 5,800 | Number of transactions sent for manual review | Directly impacts fraud operations workload and cost
+Alert Conversion Rate | 18% | 12% | % of flagged transactions that are confirmed fraud | Low conversion may indicate poor rule quality or outdated patterns
+Review-to-Fraud Ratio | 7:1 | 11:1 | Ratio of reviews conducted to confirmed frauds | Higher ratio means operational inefficiency
+Confirmed Fraud Count | 640 | 890 | Number of transactions confirmed as fraud | Helps track overall fraud levels and model impact
+PSI (Amount - Flagged) | 0.08 | 0.21 | Shift in transaction amount distribution for flagged transactions (vs Jan-25) | Indicates changing fraud behavior or rule mismatch if PSI exceeds 0.10
+PSI (Channel - Approved) | 0.03 | 0.05 | Shift in channel usage for approved transactions (vs Jan-25) | Detects changes in transaction channel trends that could affect approval dynamics

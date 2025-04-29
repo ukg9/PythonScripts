@@ -1,10 +1,9 @@
-Field Name | Business Explanation | Metrics Supported | Business Relevance
-Transaction ID | Unique identifier for each transaction | All metrics (for traceability) | Enables tracking, linking to outcomes, and detailed analysis at transaction level
-Transaction Timestamp | Date and time when the transaction occurred | Trend Over Time | Supports time-based analysis, peak hour fraud detection, and model drift monitoring
-Transaction Amount | Value of the transaction | False Positive Rate, Manual Review Volume | Helps assess if high-value transactions are over- or under-flagged
-Channel/Platform | Origin channel of the transaction (e.g., mobile app, web) | All metrics (for segmentation) | Enables channel-specific performance monitoring and fraud risk analysis
-Model Decision | Output of the Alipay model (e.g., approved, flagged for review) | False Positive Rate, True Positive Rate | Core field for determining and analyzing model outcomes
-Manual Review Indicator | Flag indicating whether the transaction was routed to manual review | Manual Review Volume | Key to evaluating operational workload and model effectiveness
-Fraud Label (if available) | Post-facto fraud confirmation (e.g., confirmed fraud, confirmed genuine) | True Positive Rate, False Positive Rate | Vital for calculating detection accuracy and evaluating business impact
-Customer ID (masked/anonymized) | Unique customer identifier, anonymized for privacy | Trend Over Time, Operational Feedback | Allows analysis of repeated flags or behaviors across users
-Action Taken | Final outcome (e.g., transaction blocked, completed, reversed) | Case Outcomes, True Positive Rate | Assesses end-to-end impact of model decision on business process and customer experience
+Metric Name | Formula / Definition | Business Significance
+True Positive Rate (TPR) | TP / (TP + FN) — Proportion of actual frauds correctly identified by the model | Measures the model’s ability to detect fraud; higher values indicate better detection
+False Positive Rate (FPR) | FP / (FP + TN) — Proportion of legitimate transactions incorrectly flagged as fraud | Indicates the rate of unnecessary alerts; lower values reduce customer friction and cost
+Manual Review Volume | Count of transactions flagged for manual intervention | Reflects operational burden; helps assess whether model output is manageable
+Alert Conversion Rate | Confirmed Fraud Alerts / Total Alerts | Measures precision of alerts; helps evaluate review efficiency and rule quality
+Fraud Rate | Confirmed Fraud Transactions / Total Transactions | Gives an overall fraud trend; helps contextualize model performance
+Review-to-Fraud Ratio | Transactions Sent for Review / Confirmed Fraud Cases | Indicates efficiency of manual review process; lower ratios are preferred
+Trend Deviation | Change in key metric values over a defined time period | Flags possible model drift or changes in fraud patterns
+Average Transaction Amount (Flagged) | Sum of flagged transaction amounts / Number of flagged transactions | Helps assess financial risk exposure from flagged transactions

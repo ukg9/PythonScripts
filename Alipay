@@ -1,7 +1,10 @@
-Monitoring Area	Objective
-False Positive Rate	Assess the rate of legitimate transactions incorrectly flagged as suspicious, to evaluate model precision and minimize customer friction.
-True Positive Rate	Measure the proportion of actual fraud cases correctly identified by the model, indicating its effectiveness in detecting fraud.
-Manual Review Volume	Monitor the number of transactions escalated for manual review, to gauge operational impact and potential model inefficiencies.
-Trend Over Time	Track changes in key metrics over time to detect model drift, emerging fraud patterns, or rule degradation.
-Operational Feedback	Incorporate feedback from fraud analysts on flagged transactions to understand rule performance and refine processes.
-Case Outcomes (where available)	Use confirmed fraud labels or outcomes to validate model accuracy and support recalibration if needed.
+Field Name | Business Explanation | Metrics Supported | Business Relevance
+Transaction ID | Unique identifier for each transaction | All metrics (for traceability) | Enables tracking, linking to outcomes, and detailed analysis at transaction level
+Transaction Timestamp | Date and time when the transaction occurred | Trend Over Time | Supports time-based analysis, peak hour fraud detection, and model drift monitoring
+Transaction Amount | Value of the transaction | False Positive Rate, Manual Review Volume | Helps assess if high-value transactions are over- or under-flagged
+Channel/Platform | Origin channel of the transaction (e.g., mobile app, web) | All metrics (for segmentation) | Enables channel-specific performance monitoring and fraud risk analysis
+Model Decision | Output of the Alipay model (e.g., approved, flagged for review) | False Positive Rate, True Positive Rate | Core field for determining and analyzing model outcomes
+Manual Review Indicator | Flag indicating whether the transaction was routed to manual review | Manual Review Volume | Key to evaluating operational workload and model effectiveness
+Fraud Label (if available) | Post-facto fraud confirmation (e.g., confirmed fraud, confirmed genuine) | True Positive Rate, False Positive Rate | Vital for calculating detection accuracy and evaluating business impact
+Customer ID (masked/anonymized) | Unique customer identifier, anonymized for privacy | Trend Over Time, Operational Feedback | Allows analysis of repeated flags or behaviors across users
+Action Taken | Final outcome (e.g., transaction blocked, completed, reversed) | Case Outcomes, True Positive Rate | Assesses end-to-end impact of model decision on business process and customer experience
